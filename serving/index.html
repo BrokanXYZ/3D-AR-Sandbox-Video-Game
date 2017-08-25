@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+    <title>Babylon Multiplayer Demo</title>
+    <!-- CSS -->
+    <link rel="stylesheet" type="text/css" href="/serving/css/index.css"/>
+    <!-- JS -->
+		<!-- Libraries -->
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="/serving/js/babylon.3.0.js"></script>
+		<!-- The MEAT -->
+		<script src="/serving/js/index.js"></script>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+	
+	<div id="nameInput">
+		<font size="6">Please enter a nickname</font></br>
+		<input id="nickName" type="text" name="nickName" value=""><br>
+		<input onclick="validateName()" type="submit" value="Submit">
+	</div>
+	<script>
+		function validateName() {
+			var nickname = document.getElementById('nickName').value;
+			
+			if(nickname.length == 0){
+				alert("Your nickname cannot be nothing.");
+			}
+			else if(nickname.length > 16)
+			{
+				alert("Your nickname is " + nickname.length + " characters long.\nIt must be 16 or less.");
+			}
+			else
+			{
+				//Hide input div
+				document.getElementById('nameInput').style.display = 'none';
+				//Initialize player!
+				setupPlayer(nickname);
+				setupGUI();
+			}
+		}
+	</script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+    "name": "Babylon_Mult_Demo",
+    "version": "0.0.0",
+    "description": "Multiplayer demo made with Babylon.js",
+    "dependencies": {
+        "socket.io": "latest",
+        "express": "latest",
+		"uuid": "latest"
+    },
+    "author": "Brok Stafford"
+}
