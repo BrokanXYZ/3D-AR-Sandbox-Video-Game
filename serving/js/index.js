@@ -447,10 +447,7 @@ function setupSocketIO(){
 	
 	
 	function createAnotherPlayer(uID, uColor){
-		BABYLON.SceneLoader.ImportMesh("", "serving/meshes/", "CharModel.babylon", scene, function (newMeshes, particleSystems, skeletons) {
-			
-			console.log("num skeletons! " + skeletons.length);
-			console.log(skeletons);
+		BABYLON.SceneLoader.ImportMesh("", "serving/meshes/", "player.babylon", scene, function (newMeshes, particleSystems, skeletons) {
 			
 			var tempMat = new BABYLON.StandardMaterial("mat_" + uID, scene);
 			tempMat.emissiveColor = new BABYLON.Color3(uColor[0],uColor[1],uColor[2]);
@@ -459,9 +456,13 @@ function setupSocketIO(){
 			
 			newMeshes[0].material = tempMat;
 			newMeshes[0].checkCollisions = true;
-			newMeshes[0].scaling = new BABYLON.Vector3(0.38,0.38,0.38);
+			newMeshes[0].scaling = new BABYLON.Vector3(1.25,1.25,1.25);
 			
 			players[uID] = newMeshes[0];
+			
+			console.log(skeletons[0]);
+			
+			//scene.beginAnimation(skeletons[0], 0, 100, true, 1.0);
 		});
 	}
 }
@@ -518,7 +519,7 @@ function setupPlayer(nickname){
 		camera.keysUp = [87];
 		camera.keysLeft = [65];
 		camera.keysRight = [68];
-		camera.speed = 1.75;
+		camera.speed = 1.4;
 		camera.inertia = .5;
 		camera.angularSensibility = 1000;
 		camera.setTarget(BABYLON.Vector3.Zero());
@@ -832,7 +833,7 @@ function setupPlayer(nickname){
 			}
 		
 			//Mesh follows players camera (*offsets added here to compensate for player mesh)
-			players[mySocketId].position = new BABYLON.Vector3(camera.position.x, camera.position.y - 0.9, camera.position.z);
+			players[mySocketId].position = new BABYLON.Vector3(camera.position.x, camera.position.y - 2, camera.position.z);
 			
 			//Player mesh rotation
 			players[mySocketId].rotation.y = camera.rotation.y - Math.PI;
