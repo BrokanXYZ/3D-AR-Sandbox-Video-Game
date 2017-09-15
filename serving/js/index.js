@@ -460,9 +460,10 @@ function setupSocketIO(){
 			
 			players[uID] = newMeshes[0];
 			
-			console.log(skeletons[0]);
 			
-			//scene.beginAnimation(skeletons[0], 0, 100, true, 1.0);
+			
+			
+			scene.beginAnimation(skeletons[0], 0, 24, true, 1.0);
 		});
 	}
 }
