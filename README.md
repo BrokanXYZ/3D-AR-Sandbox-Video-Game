@@ -2,7 +2,7 @@
 
 A work in progress! This will eventually be an online multiplayer arena type game... Think Mount and Blade, but with special abilities!
 
-I'm using the Babylon.js library for the graphics and node.js + socket.io for the multiplayer components.
+I'm using the **Babylon.js** library for the graphics and **node.js** + **socket.io** for the multiplayer components.
 
 At its current state this game has basic movement, a character model, a few animations, and LAN multiplayer functionality. 
 
