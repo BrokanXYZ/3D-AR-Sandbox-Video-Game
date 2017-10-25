@@ -24,7 +24,8 @@ var scene;
 //Game vars
 var camera;
 var cameraRay;
-var gravityVal = -0.2;
+//var gravityVal = -0.2;
+var gravityVal = 0;
 var onSlope;
 var slope1;
 var slope2;
@@ -93,6 +94,12 @@ function createWorld(){
 	groundMat.diffuseTexture.uScale = 20.0;
 	groundMat.diffuseTexture.vScale = 20.0;*/
 	groundMat.specularColor = new BABYLON.Color3(0, 0, 0);
+	
+	var mountainMat = new BABYLON.StandardMaterial("mountainMat", scene);
+	/*groundMat.diffuseTexture = new BABYLON.Texture("serving/textures/sand.png", scene);
+	groundMat.diffuseTexture.uScale = 20.0;
+	groundMat.diffuseTexture.vScale = 20.0;*/
+	mountainMat.specularColor = new BABYLON.Color3(0, 1, 0);
 	
 	
 	///////  Polygon Defs!  ///////
@@ -308,18 +315,33 @@ function createWorld(){
 	///////  Lava  ///////
 	//var lava = BABYLON.Mesh.CreateDisc("lava", 175, 64, scene);
 	//lava.rotation.x = Math.PI/2;
-	var lava = BABYLON.Mesh.CreateGround("lava", 300, 300, 25, scene);
+	var lava = BABYLON.Mesh.CreateGround("lava", 500, 500, 25, scene);
 	lava.position.y += -15;
 	lava.material = lavaMaterial;
 	lava.isPickable = false;
 	
-	
+	///////  Skybox  ///////
+	var skybox = BABYLON.Mesh.CreateBox("skyBox", 1000.0, scene);
+	var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
+	skybox.position.y += 175;
+	skyboxMaterial.backFaceCulling = false;
+	skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("serving/skybox/skybox", scene, ["_px.png", "_py.png", "_pz.png", "_nx.png", "_ny.png", "_nz.png"]);
+	skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+	skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+	skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+	skyboxMaterial.disableLighting = true;
+	skybox.material = skyboxMaterial;
 	
 	///////  Ground  ///////
-	var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "serving/heightmap/heightmap.jpg", 200, 200, 100, 0, 30, scene);
+	var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "serving/heightmaps/island.jpg", 200, 200, 100, 0, 30, scene);
 	ground.checkCollisions = true;
 	ground.material = groundMat;
 	ground.position.y += -21;
+	
+	///////  Mountains  ///////
+	var mountains = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "serving/heightmaps/mountains.jpg", 650, 650, 100, 0, 175, scene);
+	mountains.material = mountainMat;
+	mountains.position.y += -21;
 	
 	
 	///////  Shadows  ///////
