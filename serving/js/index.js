@@ -58,7 +58,7 @@ function createWorld(){
 	scene.clearColor = new BABYLON.Color3(1,0.3,0.1);
 	
 	//Light
-	var light0 = new BABYLON.DirectionalLight("light0", new BABYLON.Vector3(0, -0.75, 1), scene);
+	var light0 = new BABYLON.DirectionalLight("light0", new BABYLON.Vector3(0, -1.5, 1), scene);
 	light0.position = new BABYLON.Vector3(0, 50, -50);
 	light0.diffuse = new BABYLON.Color3(1, 1, 1);
 	light0.specular = new BABYLON.Color3(1, 0, 0);
@@ -66,40 +66,80 @@ function createWorld(){
 
 	///////  Texture Defs!  ///////
 	var stoneMat = new BABYLON.StandardMaterial("stoneMat", scene);
-	/*stoneMat.diffuseTexture = new BABYLON.Texture("serving/textures/rock.jpg", scene);
+	stoneMat.diffuseTexture = new BABYLON.Texture("serving/textures/rock.jpg", scene);
 	stoneMat.diffuseTexture.uScale = 2.0;
-	stoneMat.diffuseTexture.vScale = 2.0;*/
+	stoneMat.diffuseTexture.vScale = 2.0;
 	
 	var bridgeMat = new BABYLON.StandardMaterial("bridgeMat", scene);
-	/*bridgeMat.diffuseTexture = new BABYLON.Texture("serving/textures/bridge.png", scene);
+	bridgeMat.diffuseTexture = new BABYLON.Texture("serving/textures/bridge.png", scene);
 	bridgeMat.diffuseTexture.uScale = 12.0;
-	bridgeMat.diffuseTexture.vScale = 2.0;*/
+	bridgeMat.diffuseTexture.vScale = 2.0;
 	bridgeMat.specularColor = new BABYLON.Color3(0, 0, 0);
 	
 	var woodMat = new BABYLON.StandardMaterial("woodMat", scene);
-	/*woodMat.diffuseTexture = new BABYLON.Texture("serving/textures/wood.jpg", scene);
+	woodMat.diffuseTexture = new BABYLON.Texture("serving/textures/wood.jpg", scene);
 	woodMat.diffuseTexture.uScale = 2.0;
-	woodMat.diffuseTexture.vScale = 2.0;*/
+	woodMat.diffuseTexture.vScale = 2.0;
 	woodMat.specularColor = new BABYLON.Color3(0, 0, 0);
 	
 	var lavaMaterial = new BABYLON.LavaMaterial("lava", scene);	
-	/*lavaMaterial.diffuseTexture = new BABYLON.Texture("serving/textures/lava.jpg", scene);
-	lavaMaterial.diffuseTexture.uScale = 3.0;
-	lavaMaterial.diffuseTexture.vScale = 3.0;*/
-	lavaMaterial.speed = 0.05;
+	lavaMaterial.diffuseTexture = new BABYLON.Texture("serving/textures/lava.jpg", scene);
+	lavaMaterial.diffuseTexture.uScale = 7.0;
+	lavaMaterial.diffuseTexture.vScale = 7.0;
+	lavaMaterial.speed = 0.06;
 	lavaMaterial.fogColor = new BABYLON.Color3(1, 0, 0);
 	
 	var groundMat = new BABYLON.StandardMaterial("groundMat", scene);
-	/*groundMat.diffuseTexture = new BABYLON.Texture("serving/textures/sand.png", scene);
+	groundMat.diffuseTexture = new BABYLON.Texture("serving/textures/sand.png", scene);
 	groundMat.diffuseTexture.uScale = 20.0;
-	groundMat.diffuseTexture.vScale = 20.0;*/
+	groundMat.diffuseTexture.vScale = 20.0;
 	groundMat.specularColor = new BABYLON.Color3(0, 0, 0);
 	
 	var mountainMat = new BABYLON.StandardMaterial("mountainMat", scene);
-	/*groundMat.diffuseTexture = new BABYLON.Texture("serving/textures/sand.png", scene);
-	groundMat.diffuseTexture.uScale = 20.0;
-	groundMat.diffuseTexture.vScale = 20.0;*/
-	mountainMat.specularColor = new BABYLON.Color3(0, 1, 0);
+	/*mountainMat.diffuseTexture = new BABYLON.Texture("serving/textures/mountains.jpg", scene);
+	mountainMat.diffuseTexture.uScale = 50.0;
+	mountainMat.diffuseTexture.vScale = 50.0;*/
+	//mountainMat.specularColor = new BABYLON.Color3(0, 0, 1);
+	//mountainMat.diffuseColor = new BABYLON.Color3(1, 1, 1);
+	//mountainMat.emissiveColor = new BABYLON.Color3(-0.5,-0.5,-0.5);
+	mountainMat.specularColor = new BABYLON.Color3(0, 0, 0);
+	mountainMat.diffuseColor = new BABYLON.Color3(0, 0, 0);
+	
+	var cloud1Mat = new BABYLON.StandardMaterial("cloud1Mat", scene);
+	cloud1Mat.diffuseTexture = new BABYLON.Texture("serving/textures/cloud1.png", scene);
+	cloud1Mat.diffuseTexture.hasAlpha = true;
+	cloud1Mat.diffuseTexture.uScale = 1.0;
+	cloud1Mat.diffuseTexture.vScale = 1.0;
+	cloud1Mat.emissiveColor = new BABYLON.Color3(0.9,0.9,0.9);
+	
+	var cloud2Mat = new BABYLON.StandardMaterial("cloud2Mat", scene);
+	cloud2Mat.diffuseTexture = new BABYLON.Texture("serving/textures/cloud2.png", scene);
+	cloud2Mat.diffuseTexture.hasAlpha = true;
+	cloud2Mat.diffuseTexture.uScale = 1.0;
+	cloud2Mat.diffuseTexture.vScale = 1.0;
+	cloud2Mat.emissiveColor = new BABYLON.Color3(0.9,0.9,0.9);
+	
+	var cloud3Mat = new BABYLON.StandardMaterial("cloud3Mat", scene);
+	cloud3Mat.diffuseTexture = new BABYLON.Texture("serving/textures/cloud3.png", scene);
+	cloud3Mat.diffuseTexture.hasAlpha = true;
+	cloud3Mat.diffuseTexture.uScale = 1.0;
+	cloud3Mat.diffuseTexture.vScale = 1.0;
+	cloud3Mat.emissiveColor = new BABYLON.Color3(0.9,0.9,0.9);
+	
+	var cloud4Mat = new BABYLON.StandardMaterial("cloud4Mat", scene);
+	cloud4Mat.diffuseTexture = new BABYLON.Texture("serving/textures/cloud4.png", scene);
+	cloud4Mat.diffuseTexture.hasAlpha = true;
+	cloud4Mat.diffuseTexture.uScale = 1.0;
+	cloud4Mat.diffuseTexture.vScale = 1.0;
+	cloud4Mat.emissiveColor = new BABYLON.Color3(0.9,0.9,0.9);
+	
+	var cloud5Mat = new BABYLON.StandardMaterial("cloud5Mat", scene);
+	cloud5Mat.diffuseTexture = new BABYLON.Texture("serving/textures/cloud5.png", scene);
+	cloud5Mat.diffuseTexture.hasAlpha = true;
+	cloud5Mat.diffuseTexture.uScale = 1.0;
+	cloud5Mat.diffuseTexture.vScale = 1.0;
+	cloud5Mat.emissiveColor = new BABYLON.Color3(0.9,0.9,0.9);
+	
 	
 	
 	///////  Polygon Defs!  ///////
@@ -315,13 +355,13 @@ function createWorld(){
 	///////  Lava  ///////
 	//var lava = BABYLON.Mesh.CreateDisc("lava", 175, 64, scene);
 	//lava.rotation.x = Math.PI/2;
-	var lava = BABYLON.Mesh.CreateGround("lava", 500, 500, 25, scene);
+	var lava = BABYLON.Mesh.CreateGround("lava", 1200, 1200, 50, scene);
 	lava.position.y += -15;
 	lava.material = lavaMaterial;
 	lava.isPickable = false;
 	
 	///////  Skybox  ///////
-	var skybox = BABYLON.Mesh.CreateBox("skyBox", 1000.0, scene);
+	var skybox = BABYLON.Mesh.CreateBox("skyBox", 2000.0, scene);
 	var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
 	skybox.position.y += 175;
 	skyboxMaterial.backFaceCulling = false;
@@ -333,15 +373,15 @@ function createWorld(){
 	skybox.material = skyboxMaterial;
 	
 	///////  Ground  ///////
-	var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "serving/heightmaps/island.jpg", 200, 200, 100, 0, 30, scene);
+	var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "serving/heightmaps/island.jpg", 200, 200, 100, 0, 35.5, scene);
 	ground.checkCollisions = true;
 	ground.material = groundMat;
-	ground.position.y += -21;
+	ground.position.y += -25;
 	
 	///////  Mountains  ///////
-	var mountains = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "serving/heightmaps/mountains.jpg", 650, 650, 100, 0, 175, scene);
+	var mountains = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "serving/heightmaps/mountains.jpg", 1600, 1600, 48, 0, 300, scene);
 	mountains.material = mountainMat;
-	mountains.position.y += -21;
+	mountains.position.y += -21.5;
 	
 	
 	///////  Shadows  ///////
@@ -365,15 +405,140 @@ function createWorld(){
 	ground.receiveShadows = true;
 	bridgeMain.receiveShadows = true;
 	
+	
+	////////// SKY!! //////////
+	
+		//SUN
+		var sunSize = 200;
+		var spriteManagerSun = new BABYLON.SpriteManager("spriteManagerSun", "serving/textures/sun.png", 2, 675, scene);
+		
+		var sun11 = new BABYLON.Sprite("sun11", spriteManagerSun);
+		sun11.position = new BABYLON.Vector3(0, 400, 830);
+		sun11.size = sunSize;
+		var sun12 = new BABYLON.Sprite("sun12", spriteManagerSun);
+		sun12.position = new BABYLON.Vector3(0, 400, 835);
+		sun12.size = sunSize;
+		sun12.angle -= 8;
+		
+		engine.runRenderLoop(function () {
+			sun11.angle -= 0.001;
+			sun12.angle -= 0.001;
+		});
+		
+		
+		//CLOUDS
+		var rotRadius = 1000; //Is this radius 100% accurate?
+		var rotAxis = new BABYLON.Vector3(0, 1, .55);
+		var rotFlippedAxis = new BABYLON.Vector3(0, 1, -.55);
+		var rotSpeed = 1;
+		var cloudSize = 250;
+		
+		
+		var cloud1 = BABYLON.Mesh.CreatePlane("cloud1", cloudSize, scene);
+		cloud1.position = new BABYLON.Vector3(0, -150, 0);	//due to the rotation & translation
+		cloud1.setPivotMatrix(BABYLON.Matrix.Translation(0, 0, rotRadius));
+		cloud1.rotation.x = -0.5;
+		cloud1.material = cloud1Mat;
+		
+		var cloud2 = BABYLON.Mesh.CreatePlane("cloud2", cloudSize, scene);
+		cloud2.position = new BABYLON.Vector3(0, -170, 0);	//due to the rotation & translation
+		cloud2.setPivotMatrix(BABYLON.Matrix.Translation(0, 0, rotRadius-10));
+		cloud2.rotation.x = -0.5;
+		cloud2.material = cloud2Mat;
+		
+		var cloud3 = BABYLON.Mesh.CreatePlane("cloud3", cloudSize, scene);
+		cloud3.position = new BABYLON.Vector3(0, -160, 0);	//due to the rotation & translation
+		cloud3.setPivotMatrix(BABYLON.Matrix.Translation(0, 0, rotRadius-20));
+		cloud3.rotation.x = -0.5;
+		cloud3.material = cloud3Mat;
+		
+		var cloud4 = BABYLON.Mesh.CreatePlane("cloud4", cloudSize, scene);
+		cloud4.position = new BABYLON.Vector3(0, -190, 0);	//due to the rotation & translation
+		cloud4.setPivotMatrix(BABYLON.Matrix.Translation(0, 0, rotRadius-30));
+		cloud4.rotation.x = -0.5;
+		cloud4.material = cloud4Mat;
+		
+		var cloud5 = BABYLON.Mesh.CreatePlane("cloud5", cloudSize, scene);
+		cloud5.position = new BABYLON.Vector3(0, -185, 0);	//due to the rotation & translation
+		cloud5.setPivotMatrix(BABYLON.Matrix.Translation(0, 0, rotRadius-40));
+		cloud5.rotation.x = -0.5;
+		cloud5.material = cloud5Mat;
+		
+		
+		
+		var cloud6 = BABYLON.Mesh.CreatePlane("cloud6", cloudSize, scene);
+		cloud6.position = new BABYLON.Vector3(0, -220, 0);	//due to the rotation & translation
+		cloud6.setPivotMatrix(BABYLON.Matrix.Translation(0, 0, rotRadius-50));
+		cloud6.rotation.x = -0.5;
+		cloud6.rotation.z = Math.PI;
+		cloud6.material = cloud1Mat;
+		
+		var cloud7 = BABYLON.Mesh.CreatePlane("cloud7", cloudSize, scene);
+		cloud7.position = new BABYLON.Vector3(0, -200, 0);	//due to the rotation & translation
+		cloud7.setPivotMatrix(BABYLON.Matrix.Translation(0, 0, rotRadius-60));
+		cloud7.rotation.x = -0.5;
+		cloud7.rotation.z = Math.PI;
+		cloud7.material = cloud2Mat;
+		
+		var cloud8 = BABYLON.Mesh.CreatePlane("cloud8", cloudSize, scene);
+		cloud8.position = new BABYLON.Vector3(0, -210, 0);	//due to the rotation & translation
+		cloud8.setPivotMatrix(BABYLON.Matrix.Translation(0, 0, rotRadius-70));
+		cloud8.rotation.x = -0.5;
+		cloud8.rotation.z = Math.PI;
+		cloud8.material = cloud3Mat;
+		
+		var cloud9 = BABYLON.Mesh.CreatePlane("cloud9", cloudSize, scene);
+		cloud9.position = new BABYLON.Vector3(0, -180, 0);	//due to the rotation & translation
+		cloud9.setPivotMatrix(BABYLON.Matrix.Translation(0, 0, rotRadius-80));
+		cloud9.rotation.x = -0.5;
+		cloud9.rotation.z = Math.PI;
+		cloud9.material = cloud4Mat;
+		
+		var cloud10 = BABYLON.Mesh.CreatePlane("cloud10", cloudSize, scene);
+		cloud10.position = new BABYLON.Vector3(0, -175, 0);	//due to the rotation & translation
+		cloud10.setPivotMatrix(BABYLON.Matrix.Translation(0, 0, rotRadius-90));
+		cloud10.rotation.x = -0.5;
+		cloud10.rotation.z = Math.PI;
+		cloud10.material = cloud5Mat;
+		
+		
+		//Random placement
+		cloud1.rotate(rotAxis, Math.random()*Math.PI*2, BABYLON.Space.LOCAL);
+		cloud2.rotate(rotAxis, Math.random()*Math.PI*2, BABYLON.Space.LOCAL);
+		cloud3.rotate(rotAxis, Math.random()*Math.PI*2, BABYLON.Space.LOCAL);
+		cloud4.rotate(rotAxis, Math.random()*Math.PI*2, BABYLON.Space.LOCAL);
+		cloud5.rotate(rotAxis, Math.random()*Math.PI*2, BABYLON.Space.LOCAL);
+		
+		cloud6.rotate(rotFlippedAxis, Math.random()*Math.PI*2, BABYLON.Space.LOCAL);
+		cloud7.rotate(rotFlippedAxis, Math.random()*Math.PI*2, BABYLON.Space.LOCAL);
+		cloud8.rotate(rotFlippedAxis, Math.random()*Math.PI*2, BABYLON.Space.LOCAL);
+		cloud9.rotate(rotFlippedAxis, Math.random()*Math.PI*2, BABYLON.Space.LOCAL);
+		cloud10.rotate(rotFlippedAxis, Math.random()*Math.PI*2, BABYLON.Space.LOCAL);
+		
+		
+		engine.runRenderLoop(function () {
+			cloud1.rotate(rotAxis, 0.000099*rotSpeed, BABYLON.Space.LOCAL);
+			cloud2.rotate(rotAxis, 0.00000945*rotSpeed, BABYLON.Space.LOCAL);
+			cloud3.rotate(rotAxis, 0.0000955*rotSpeed, BABYLON.Space.LOCAL);
+			cloud4.rotate(rotAxis, 0.0000965*rotSpeed, BABYLON.Space.LOCAL);
+			cloud5.rotate(rotAxis, 0.0000975*rotSpeed, BABYLON.Space.LOCAL);
+			
+			cloud6.rotate(rotFlippedAxis, -0.000097*rotSpeed, BABYLON.Space.LOCAL);
+			cloud7.rotate(rotFlippedAxis, -0.0000096*rotSpeed, BABYLON.Space.LOCAL);
+			cloud8.rotate(rotFlippedAxis, -0.000095*rotSpeed, BABYLON.Space.LOCAL);	
+			cloud9.rotate(rotFlippedAxis, -0.000094*rotSpeed, BABYLON.Space.LOCAL);
+			cloud10.rotate(rotFlippedAxis, -0.000099*rotSpeed, BABYLON.Space.LOCAL);
+		});
+				
 }
 
 function setupSpectator(){
-	camera = new BABYLON.ArcRotateCamera("myCamera", 3.5, 1.36, 145, new BABYLON.Vector3(0, 0, 0), scene);
-	
+	camera = new BABYLON.ArcRotateCamera("myCamera", 4, 1.6, 275, new BABYLON.Vector3(0, 60, 0), scene);
 	
 	engine.runRenderLoop(function () {
 		camera.alpha += 0.001;
 		scene.render();
+		
 	}); 
 }
 
@@ -508,7 +673,7 @@ function setupGUI(){
 	noHpBar.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
 	noHpBar.top = -15;
 	noHpBar.left = -15;
-	advancedTexture.addControl(noHpBar);    
+	//advancedTexture.addControl(noHpBar);    
 
 	var hpBar = new BABYLON.GUI.Rectangle();
 	hpBar.width = "200px";	////////////	  *Player's health*
@@ -520,7 +685,7 @@ function setupGUI(){
 	hpBar.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
 	hpBar.top = -15;
 	hpBar.left = -15;
-	advancedTexture.addControl(hpBar);
+	//advancedTexture.addControl(hpBar);
 }
 
 function setupPlayer(nickname){
@@ -542,7 +707,8 @@ function setupPlayer(nickname){
 		camera.keysUp = [87];
 		camera.keysLeft = [65];
 		camera.keysRight = [68];
-		camera.speed = 1.4;
+		//camera.speed = 1.4;
+		camera.speed = 12;
 		camera.inertia = .5;
 		camera.angularSensibility = 1000;
 		camera.setTarget(BABYLON.Vector3.Zero());
@@ -560,6 +726,8 @@ function setupPlayer(nickname){
 	function meshSetup(){
 		//Create player's Mesh
 		players[mySocketId] = BABYLON.Mesh.CreateSphere("me", 16, 2, scene);
+		// * * * * * * SINCE THIS IS NOT VISIBLE.... can we get rid of stuff beneath???  * * * * * * 
+		players[mySocketId].visibility = false;
 		
 		//Configure player's sphere
 		var red = Math.random();
@@ -620,7 +788,8 @@ function setupPlayer(nickname){
 			switch(evt.sourceEvent.keyCode){
 				//spacebar
 				case 32:
-						cameraJump();
+						//cameraJump();
+						console.log(camera.position);
 						break;
 				// W
 				case 87:
