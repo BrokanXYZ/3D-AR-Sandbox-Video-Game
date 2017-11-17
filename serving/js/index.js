@@ -24,14 +24,13 @@ var scene;
 //Game vars
 var camera;
 var cameraRay;
-//var gravityVal = -0.2;
-var gravityVal = 0;
+var gravityVal = -.01;
+//var gravityVal = 0;
 var onSlope;
 var slope1;
 var slope2;
 var slope3;
 var slope4;
-var onSlope;
 
 //Player mesh movement vars
 var canJump = false;
@@ -45,7 +44,12 @@ function initializeBabylon(){
 	canvas = document.getElementById("gameCanvas");
 	engine = new BABYLON.Engine(canvas, true);
 	scene = new BABYLON.Scene(engine);
-
+	
+	//Physics Engine (Oimo.js!)
+	//scene.enablePhysics(new BABYLON.Vector3(0,-9.81, 0), new BABYLON.OimoJSPlugin());
+	scene.enablePhysics(new BABYLON.Vector3(0,-9.81, 0), new BABYLON.CannonJSPlugin());
+	
+	
 	//Resize window
 	window.addEventListener("resize", function () {
 		engine.resize();
@@ -139,7 +143,6 @@ function createWorld(){
 	cloud5Mat.diffuseTexture.uScale = 1.0;
 	cloud5Mat.diffuseTexture.vScale = 1.0;
 	cloud5Mat.emissiveColor = new BABYLON.Color3(0.9,0.9,0.9);
-	
 	
 	
 	///////  Polygon Defs!  ///////
@@ -379,7 +382,7 @@ function createWorld(){
 	ground.position.y += -25;
 	
 	///////  Mountains  ///////
-	var mountains = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "serving/heightmaps/mountains.jpg", 1600, 1600, 48, 0, 300, scene);
+	var mountains = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "serving/heightmaps/mountains.jpg", 1400, 1400, 48, 0, 300, scene);
 	mountains.material = mountainMat;
 	mountains.position.y += -21.5;
 	
@@ -409,14 +412,14 @@ function createWorld(){
 	////////// SKY!! //////////
 	
 		//SUN
-		var sunSize = 200;
+		var sunSize = 300;
 		var spriteManagerSun = new BABYLON.SpriteManager("spriteManagerSun", "serving/textures/sun.png", 2, 675, scene);
 		
 		var sun11 = new BABYLON.Sprite("sun11", spriteManagerSun);
-		sun11.position = new BABYLON.Vector3(0, 400, 830);
+		sun11.position = new BABYLON.Vector3(-50, 625, -870);
 		sun11.size = sunSize;
 		var sun12 = new BABYLON.Sprite("sun12", spriteManagerSun);
-		sun12.position = new BABYLON.Vector3(0, 400, 835);
+		sun12.position = new BABYLON.Vector3(-50, 625, -875);
 		sun12.size = sunSize;
 		sun12.angle -= 8;
 		
@@ -427,109 +430,109 @@ function createWorld(){
 		
 		
 		//CLOUDS
-		var rotRadius = 1000; //Is this radius 100% accurate?
+		var rotRadius = 1100; //Is this radius 100% accurate?
 		var rotAxis = new BABYLON.Vector3(0, 1, .55);
 		var rotFlippedAxis = new BABYLON.Vector3(0, 1, -.55);
-		var rotSpeed = 1;
-		var cloudSize = 250;
+		var rotSpeed = 0.75;
+		var cloudSize = 1.75;
+		var numClouds = 10;
+		var clouds = [];
 		
-		
-		var cloud1 = BABYLON.Mesh.CreatePlane("cloud1", cloudSize, scene);
-		cloud1.position = new BABYLON.Vector3(0, -150, 0);	//due to the rotation & translation
-		cloud1.setPivotMatrix(BABYLON.Matrix.Translation(0, 0, rotRadius));
-		cloud1.rotation.x = -0.5;
-		cloud1.material = cloud1Mat;
-		
-		var cloud2 = BABYLON.Mesh.CreatePlane("cloud2", cloudSize, scene);
-		cloud2.position = new BABYLON.Vector3(0, -170, 0);	//due to the rotation & translation
-		cloud2.setPivotMatrix(BABYLON.Matrix.Translation(0, 0, rotRadius-10));
-		cloud2.rotation.x = -0.5;
-		cloud2.material = cloud2Mat;
-		
-		var cloud3 = BABYLON.Mesh.CreatePlane("cloud3", cloudSize, scene);
-		cloud3.position = new BABYLON.Vector3(0, -160, 0);	//due to the rotation & translation
-		cloud3.setPivotMatrix(BABYLON.Matrix.Translation(0, 0, rotRadius-20));
-		cloud3.rotation.x = -0.5;
-		cloud3.material = cloud3Mat;
-		
-		var cloud4 = BABYLON.Mesh.CreatePlane("cloud4", cloudSize, scene);
-		cloud4.position = new BABYLON.Vector3(0, -190, 0);	//due to the rotation & translation
-		cloud4.setPivotMatrix(BABYLON.Matrix.Translation(0, 0, rotRadius-30));
-		cloud4.rotation.x = -0.5;
-		cloud4.material = cloud4Mat;
-		
-		var cloud5 = BABYLON.Mesh.CreatePlane("cloud5", cloudSize, scene);
-		cloud5.position = new BABYLON.Vector3(0, -185, 0);	//due to the rotation & translation
-		cloud5.setPivotMatrix(BABYLON.Matrix.Translation(0, 0, rotRadius-40));
-		cloud5.rotation.x = -0.5;
-		cloud5.material = cloud5Mat;
-		
-		
-		
-		var cloud6 = BABYLON.Mesh.CreatePlane("cloud6", cloudSize, scene);
-		cloud6.position = new BABYLON.Vector3(0, -220, 0);	//due to the rotation & translation
-		cloud6.setPivotMatrix(BABYLON.Matrix.Translation(0, 0, rotRadius-50));
-		cloud6.rotation.x = -0.5;
-		cloud6.rotation.z = Math.PI;
-		cloud6.material = cloud1Mat;
-		
-		var cloud7 = BABYLON.Mesh.CreatePlane("cloud7", cloudSize, scene);
-		cloud7.position = new BABYLON.Vector3(0, -200, 0);	//due to the rotation & translation
-		cloud7.setPivotMatrix(BABYLON.Matrix.Translation(0, 0, rotRadius-60));
-		cloud7.rotation.x = -0.5;
-		cloud7.rotation.z = Math.PI;
-		cloud7.material = cloud2Mat;
-		
-		var cloud8 = BABYLON.Mesh.CreatePlane("cloud8", cloudSize, scene);
-		cloud8.position = new BABYLON.Vector3(0, -210, 0);	//due to the rotation & translation
-		cloud8.setPivotMatrix(BABYLON.Matrix.Translation(0, 0, rotRadius-70));
-		cloud8.rotation.x = -0.5;
-		cloud8.rotation.z = Math.PI;
-		cloud8.material = cloud3Mat;
-		
-		var cloud9 = BABYLON.Mesh.CreatePlane("cloud9", cloudSize, scene);
-		cloud9.position = new BABYLON.Vector3(0, -180, 0);	//due to the rotation & translation
-		cloud9.setPivotMatrix(BABYLON.Matrix.Translation(0, 0, rotRadius-80));
-		cloud9.rotation.x = -0.5;
-		cloud9.rotation.z = Math.PI;
-		cloud9.material = cloud4Mat;
-		
-		var cloud10 = BABYLON.Mesh.CreatePlane("cloud10", cloudSize, scene);
-		cloud10.position = new BABYLON.Vector3(0, -175, 0);	//due to the rotation & translation
-		cloud10.setPivotMatrix(BABYLON.Matrix.Translation(0, 0, rotRadius-90));
-		cloud10.rotation.x = -0.5;
-		cloud10.rotation.z = Math.PI;
-		cloud10.material = cloud5Mat;
-		
-		
-		//Random placement
-		cloud1.rotate(rotAxis, Math.random()*Math.PI*2, BABYLON.Space.LOCAL);
-		cloud2.rotate(rotAxis, Math.random()*Math.PI*2, BABYLON.Space.LOCAL);
-		cloud3.rotate(rotAxis, Math.random()*Math.PI*2, BABYLON.Space.LOCAL);
-		cloud4.rotate(rotAxis, Math.random()*Math.PI*2, BABYLON.Space.LOCAL);
-		cloud5.rotate(rotAxis, Math.random()*Math.PI*2, BABYLON.Space.LOCAL);
-		
-		cloud6.rotate(rotFlippedAxis, Math.random()*Math.PI*2, BABYLON.Space.LOCAL);
-		cloud7.rotate(rotFlippedAxis, Math.random()*Math.PI*2, BABYLON.Space.LOCAL);
-		cloud8.rotate(rotFlippedAxis, Math.random()*Math.PI*2, BABYLON.Space.LOCAL);
-		cloud9.rotate(rotFlippedAxis, Math.random()*Math.PI*2, BABYLON.Space.LOCAL);
-		cloud10.rotate(rotFlippedAxis, Math.random()*Math.PI*2, BABYLON.Space.LOCAL);
-		
-		
-		engine.runRenderLoop(function () {
-			cloud1.rotate(rotAxis, 0.000099*rotSpeed, BABYLON.Space.LOCAL);
-			cloud2.rotate(rotAxis, 0.00000945*rotSpeed, BABYLON.Space.LOCAL);
-			cloud3.rotate(rotAxis, 0.0000955*rotSpeed, BABYLON.Space.LOCAL);
-			cloud4.rotate(rotAxis, 0.0000965*rotSpeed, BABYLON.Space.LOCAL);
-			cloud5.rotate(rotAxis, 0.0000975*rotSpeed, BABYLON.Space.LOCAL);
+		function createClouds(){
+			//Total of 5 clouds types
+			//Can flip those for 5 more 'types'
+			var cType = 0;
+			var cloudSpacing = 250/numClouds;
 			
-			cloud6.rotate(rotFlippedAxis, -0.000097*rotSpeed, BABYLON.Space.LOCAL);
-			cloud7.rotate(rotFlippedAxis, -0.0000096*rotSpeed, BABYLON.Space.LOCAL);
-			cloud8.rotate(rotFlippedAxis, -0.000095*rotSpeed, BABYLON.Space.LOCAL);	
-			cloud9.rotate(rotFlippedAxis, -0.000094*rotSpeed, BABYLON.Space.LOCAL);
-			cloud10.rotate(rotFlippedAxis, -0.000099*rotSpeed, BABYLON.Space.LOCAL);
-		});
+			for(i=0;i<numClouds;i++){
 				
+				if(cType==0){
+					var cloud = new BABYLON.Mesh.CreatePlane("cloud"+i, 250*cloudSize, scene);
+					cloud.material = cloud1Mat;
+				}
+				if(cType==1){
+					var cloud = new BABYLON.Mesh.CreatePlane("cloud"+i, 250*cloudSize, scene);
+					cloud.material = cloud2Mat;
+				}
+				if(cType==2){
+					var cloud = new BABYLON.Mesh.CreatePlane("cloud"+i, 325*cloudSize, scene);
+					cloud.material = cloud3Mat;
+				}
+				if(cType==3){
+					var cloud = new BABYLON.Mesh.CreatePlane("cloud"+i, 275*cloudSize, scene);
+					cloud.material = cloud4Mat;
+				}
+				if(cType==4){
+					var cloud = new BABYLON.Mesh.CreatePlane("cloud"+i, 325*cloudSize, scene);
+					cloud.material = cloud5Mat;
+				}
+				if(cType==5){
+					var cloud = new BABYLON.Mesh.CreatePlane("cloud"+i, 250*cloudSize, scene);
+					cloud.material = cloud1Mat;
+					cloud.rotation.z = Math.PI;
+				}
+				if(cType==6){
+					var cloud = new BABYLON.Mesh.CreatePlane("cloud"+i, 250*cloudSize, scene);
+					cloud.material = cloud2Mat;
+					cloud.rotation.z = Math.PI;
+				}
+				if(cType==7){
+					var cloud = new BABYLON.Mesh.CreatePlane("cloud"+i, 325*cloudSize, scene);
+					cloud.material = cloud3Mat;
+					cloud.rotation.z = Math.PI;
+				}
+				if(cType==8){
+					var cloud = new BABYLON.Mesh.CreatePlane("cloud"+i, 275*cloudSize, scene);
+					cloud.material = cloud4Mat;
+					cloud.rotation.z = Math.PI;
+				}
+				if(cType==9){
+					var cloud = new BABYLON.Mesh.CreatePlane("cloud"+i, 325*cloudSize, scene);
+					cloud.material = cloud5Mat;
+					cloud.rotation.z = Math.PI;
+				}
+				
+				cloud.position = new BABYLON.Vector3(0, randomNumber(-275,-150), 0);	//due to the rotation & translation
+				cloud.setPivotMatrix(BABYLON.Matrix.Translation(0, 0, rotRadius-(i*cloudSpacing)));
+				cloud.rotation.x = -0.5;
+				
+				
+				if(cType<5){
+					cloud.flipped = false;
+				}else{
+					cloud.flipped = true;
+				}
+				
+				clouds.push(cloud);
+				
+				if(cType!=9){
+					cType++;
+				}else{
+					cType=0;
+				}
+			}
+			
+			//Random placement &
+			//Register rotation per frame
+			clouds.forEach(registerRotation);
+			
+			function registerRotation(item, index){
+				if(item.flipped){
+					item.rotate(rotFlippedAxis, randomNumber(0,Math.PI*2), BABYLON.Space.LOCAL);
+					engine.runRenderLoop(function () {
+						item.rotate(rotFlippedAxis, randomNumber(0.00003,0.00008)*rotSpeed, BABYLON.Space.LOCAL);
+					});
+				}else{
+					item.rotate(rotAxis, randomNumber(0,Math.PI*2), BABYLON.Space.LOCAL);
+					engine.runRenderLoop(function () {
+							item.rotate(rotAxis, randomNumber(0.00003,0.00008)*rotSpeed, BABYLON.Space.LOCAL);
+					});
+				}
+			}
+		}
+		
+		createClouds();
+	
 }
 
 function setupSpectator(){
@@ -702,13 +705,13 @@ function setupPlayer(nickname){
 		//Player's Camera
 		camera.checkCollisions = true;
 		camera.applyGravity = true;
-		camera._needMoveForGravity = true;
+		camera._needMoveForGravity = true;	//**WHAT DO?
 		camera.keysDown = [83];
 		camera.keysUp = [87];
 		camera.keysLeft = [65];
 		camera.keysRight = [68];
-		//camera.speed = 1.4;
-		camera.speed = 12;
+		camera.speed = 1.4;
+		//camera.speed = 20;
 		camera.inertia = .5;
 		camera.angularSensibility = 1000;
 		camera.setTarget(BABYLON.Vector3.Zero());
@@ -788,8 +791,7 @@ function setupPlayer(nickname){
 			switch(evt.sourceEvent.keyCode){
 				//spacebar
 				case 32:
-						//cameraJump();
-						console.log(camera.position);
+						cameraJump();
 						break;
 				// W
 				case 87:
@@ -1002,10 +1004,10 @@ function setupPlayer(nickname){
 		
 		// Register main render loop
 		engine.runRenderLoop(function () {
-			if(camera.position.y<-17){
+			/*if(camera.position.y<-17){
 				console.log("you dead");
 				death();
-			}
+			}*/
 
 			//Cast ray beneath player
 			castCameraRay();
@@ -1169,7 +1171,9 @@ function deathParticles(location){
 	}, 3000);
 	
 }
-
+function randomNumber(min,max){
+	return Math.random() * (max-min)+min;
+}
 
 
 //Entry point
