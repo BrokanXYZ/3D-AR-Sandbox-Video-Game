@@ -8,47 +8,35 @@
 //		4 = nickname
 var activeClients;
 
-//List of player meshes
-var players = [];
-
-
-//Socket stuff
+// Socket stuff
 var mySocketId = null;
 var socket = io();
 
-//Babylon vars
+// List of player meshes
+var players = [];
+
+// Babylon vars
 var canvas; 
 var engine; 
 var scene; 
 
-//Game vars
+//Main player's camera
 var camera;
-var cameraRay;
-var gravityVal = -.01;
-//var gravityVal = 0;
-var onSlope;
-var slope1;
-var slope2;
-var slope3;
-var slope4;
 
-//Player mesh movement vars
-var canJump = false;
-var moving = false;
-var keyArray = [];
+// No gravity on these! So, that player doesn't slide
+var unevenMeshes = [];
 
 
 
-//Start up functions
 function initializeBabylon(){
 	canvas = document.getElementById("gameCanvas");
 	engine = new BABYLON.Engine(canvas, true);
 	scene = new BABYLON.Scene(engine);
 	
-	//Physics Engine (Oimo.js!)
-	//scene.enablePhysics(new BABYLON.Vector3(0,-9.81, 0), new BABYLON.OimoJSPlugin());
-	scene.enablePhysics(new BABYLON.Vector3(0,-9.81, 0), new BABYLON.CannonJSPlugin());
-	
+	// Render scene
+	engine.runRenderLoop(function () {
+		scene.render();
+	});
 	
 	//Resize window
 	window.addEventListener("resize", function () {
@@ -177,12 +165,12 @@ function createWorld(){
 	
 	
 	///////  Right Side  ///////
-	slope1 = polySlope.build(null, 0);
+	var slope1 = polySlope.build(null, 0);
 	slope1.position = new BABYLON.Vector3(37, 7, 6.5);
 	slope1.rotation.x = degToRad(17);
 	slope1.checkCollisions = true;
 
-	slope2 = polySlope.build(null, 0);
+	var slope2 = polySlope.build(null, 0);
 	slope2.position = new BABYLON.Vector3(50, 7, -6.5);
 	slope2.rotation.x = degToRad(17);
 	slope2.rotation.y = degToRad(180);
@@ -206,12 +194,12 @@ function createWorld(){
 	
 	
 	///////  Left Side  ///////
-	slope3 = polySlope.build(null, 0);
+	var slope3 = polySlope.build(null, 0);
 	slope3.position = new BABYLON.Vector3(-50, 7, 6.5);
 	slope3.rotation.x = degToRad(17);
 	slope3.checkCollisions = true;
 
-	slope4 = polySlope.build(null, 0);
+	var slope4 = polySlope.build(null, 0);
 	slope4.position = new BABYLON.Vector3(-37, 7, -6.5);
 	slope4.rotation.x = degToRad(17);
 	slope4.rotation.y = degToRad(180);
@@ -409,6 +397,14 @@ function createWorld(){
 	bridgeMain.receiveShadows = true;
 	
 	
+	///////  Define uneven meshes  ///////
+	unevenMeshes.push(slope1);
+	unevenMeshes.push(slope2);
+	unevenMeshes.push(slope3);
+	unevenMeshes.push(slope4);
+	unevenMeshes.push(ground);
+	
+	
 	////////// SKY!! //////////
 	
 		//SUN
@@ -540,8 +536,6 @@ function setupSpectator(){
 	
 	engine.runRenderLoop(function () {
 		camera.alpha += 0.001;
-		scene.render();
-		
 	}); 
 }
 
@@ -695,32 +689,36 @@ function setupPlayer(nickname){
 	
 	respawn();
 	meshSetup();
-	controlsAndInteractionsSetup();
+	movementControls();
+	attackingControls();
+	checkForDeath();
+	
+	// On click event, request pointer lock
+	canvas.addEventListener("click", function (evt) {
+		canvas.requestPointerLock = canvas.requestPointerLock || canvas.msRequestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock;
+		if (canvas.requestPointerLock) {
+			canvas.requestPointerLock();
+		}
+	});
 	
 	
 	function respawn(){
-		//Overwrite spectator camera
+		//Overwrite spectator camera with FPS cam!
 		camera.dispose();
 		camera = new BABYLON.FreeCamera("myCamera", new BABYLON.Vector3(0, 9.1, 0), scene);
-		//Player's Camera
-		camera.checkCollisions = true;
-		camera.applyGravity = true;
-		camera._needMoveForGravity = true;	//**WHAT DO?
-		camera.keysDown = [83];
-		camera.keysUp = [87];
-		camera.keysLeft = [65];
-		camera.keysRight = [68];
-		camera.speed = 1.4;
-		//camera.speed = 20;
-		camera.inertia = .5;
-		camera.angularSensibility = 1000;
-		camera.setTarget(BABYLON.Vector3.Zero());
-		camera.attachControl(canvas, true);
-		//Set the ellipsoid around the camera (e.g. your player's size)
-		camera.ellipsoid = new BABYLON.Vector3(1.15, 1, 1.15);
 		
-		//Camera look position
-		camera.rotation = new BABYLON.Vector3(0,0,0);
+		//Aiming
+		camera.angularSensibility = 1000;
+		camera.inertia = 0.2;
+		
+		//Disable camera movement
+		camera.keysDown = [9999];
+		camera.keysUp = [9999];
+		camera.keysLeft = [9999];
+		camera.keysRight = [9999];
+		
+		//Add control to camera (Only rotation)
+		camera.attachControl(canvas, true);
 		
 		//Respawn effect
 		respawnParticles(camera);
@@ -740,7 +738,7 @@ function setupPlayer(nickname){
 		players[mySocketId].material.emissiveColor = new BABYLON.Color3(red, green, blue);
 		players[mySocketId].material.diffuseColor = new BABYLON.Color3(0,0,0);
 		players[mySocketId].material.specularColor = new BABYLON.Color3(0,0,0);
-		players[mySocketId].position = new BABYLON.Vector3(0, 25, 0);
+		players[mySocketId].position = new BABYLON.Vector3(0, 9.5, 0);
 		players[mySocketId].isPickable = false;
 		
 		
@@ -770,19 +768,22 @@ function setupPlayer(nickname){
 		}, 20);
 	}
 	
-	function controlsAndInteractionsSetup(){
-		// Vars for determining attack dir
-		var prevCamRotX = 0;
-		var prevCamRotY = 0;
+	function movementControls(){
 		
-		// On click event, request pointer lock
-		canvas.addEventListener("click", function (evt) {
-			canvas.requestPointerLock = canvas.requestPointerLock || canvas.msRequestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock;
-			if (canvas.requestPointerLock) {
-				canvas.requestPointerLock();
-			}
-		});
+		// Movement Vars
+		var playerSpeed = 1;
+		var gravity = -0.2;
 		
+		var moveForward = false;
+		var moveBack = false;
+		var moveLeft = false;
+		var moveRight = false;
+		
+		// What kind of surface is the player on?
+		var canJump = false;
+		var onUnevenSurface = false;
+		
+
 		//Keypress manager
 		scene.actionManager = new BABYLON.ActionManager(scene);
 		
@@ -791,23 +792,25 @@ function setupPlayer(nickname){
 			switch(evt.sourceEvent.keyCode){
 				//spacebar
 				case 32:
-						cameraJump();
+					if(canJump){
+						playerJump();
+					}
 						break;
 				// W
 				case 87:
-						keyArray.push("x");
+						moveForward = true;
 						break;
 				// S
 				case 83:
-						keyArray.push("x");
+						moveBack = true;
 						break;
 				// A
 				case 65:
-						keyArray.push("x");
+						moveLeft = true;
 						break;
 				// D
 				case 68:
-						keyArray.push("x");
+						moveRight = true;
 						break;
 			}
 		}));
@@ -817,112 +820,145 @@ function setupPlayer(nickname){
 			switch(evt.sourceEvent.keyCode){
 				// W
 				case 87:
-						keyArray.pop();
+						moveForward = false;
 						break;
 				// S
 				case 83:
-						keyArray.pop();
+						moveBack = false;
 						break;
 				// A
 				case 65:
-						keyArray.pop();
+						moveLeft = false;
 						break;
 				// D
 				case 68:
-						keyArray.pop();
+						moveRight = false;
 						break;
 			}
 		}));
 		
-		function cameraJump() {
-			// Use ray cast to check if camera is touching the ground
-			if (canJump) {
-				var cam = scene.cameras[0];
+		
+		// Raycast from player's camera
+		// 1. can player jump?
+		// 2. is the player on an uneven surface?
+		function checkPlayersSurface() {
+			// Origin, Direction, Length
+			var cameraRay = new BABYLON.Ray(camera.position, new BABYLON.Vector3(0, -1, 0), 2.1);
 
-				cam.animations = [];
+			if (scene.pickWithRay(cameraRay).pickedMesh) {
+				canJump = true;
+			} else {
+				canJump = false;
+			}
+			
+			onUnevenSurface = scene.pickWithRay(cameraRay, function (mesh) {
+				for(var x=0; x<unevenMeshes.length; x++){
+					if(mesh==unevenMeshes[x]){
+						return true;
+					}
+				}
+				return false;
+			});			
+		}
+		
 
-
-				var a = new BABYLON.Animation(
-					"a",
+		// If player is on an uneven surface... determine the player's next Y position so that they move smoothly down those surfaces
+		function nextPosOnUnevenMesh() {
+			// Origin, Direction, Length
+			var cameraRay = scene.pickWithRay(new BABYLON.Ray(camera.position, new BABYLON.Vector3(0, -1, 0), 2.25));
+			var cameraToGroundRatio = 2.01;
+			
+			if(cameraRay.hit){
+				// If player is still on mesh... send new position
+				return cameraRay.pickedPoint.y + cameraToGroundRatio;
+			}else{
+				// else... ignore
+				return camera.position.y;
+			}
+		}
+		
+	
+		function playerJump() {
+				var jump = new BABYLON.Animation(
+					"jump",
 					"position.y", 60,
 					BABYLON.Animation.ANIMATIONTYPE_FLOAT,
 					BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
 
 				// Animation keys
 				var keys = [];
-				keys.push({ frame: 0, value: cam.position.y });
-				keys.push({ frame: 25, value: cam.position.y + 2 });
-				a.setKeys(keys);
+				keys.push({ frame: 0, value: players[mySocketId].position.y });
+				keys.push({ frame: 25, value: players[mySocketId].position.y + 2 });
+				jump.setKeys(keys);
 
+				// Easing function
 				var easingFunction = new BABYLON.CircleEase();
 				easingFunction.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
-				a.setEasingFunction(easingFunction);
+				jump.setEasingFunction(easingFunction);
 
-				cam.animations.push(a);
-
-				scene.beginAnimation(cam, 0, 20, false);
-			}
+				// Push animation over... and go!
+				players[mySocketId].animations.push(jump);
+				scene.beginAnimation(players[mySocketId], 0, 20, false);
 		}
 		
-		function attack(){
-			// Ratios to compare which axis had more movement
-			var xRotRatio = Math.abs(camera.rotation.x - prevCamRotX);
-			var yRotRatio = Math.abs(camera.rotation.y - prevCamRotY);
-			
-						console.log(xRotRatio);
-						console.log(yRotRatio);
-			
-			//Vertical attack!
-			if(xRotRatio >= yRotRatio){
-				//Upwards
-				if(camera.rotation.x < prevCamRotX){
-					console.log("upwards");
-				}
-				//Downwards
-				else
-				{
-					console.log("downwards");
-				}
-			}
-			//Horizontal attack!
-			else
-			{
-				//Left
-				if(camera.rotation.y < prevCamRotY){
-					console.log("Left");
-				}
-				//Right
-				else
-				{
-					console.log("Right");
-				}
-			}
-		}
+	
+		// Register main render loop
+		engine.runRenderLoop(function () {
 		
-		function castCameraRay() {
-			var origin = camera.position;
-			var direction = new BABYLON.Vector3(0, -1, 0);
-			var length = 2.1;
-
-			cameraRay = new BABYLON.Ray(origin, direction, length);
-
-			var hit = scene.pickWithRay(cameraRay);
-
-			if (hit.pickedMesh) {
-				canJump = true;
-			} else {
-				canJump = false;
+			// Player movement per frame
+			var xMovement = 0;
+			var zMovement = 0;
+			
+			// Calculate player's movement (WASD)
+			if(moveForward){
+				xMovement += Math.sin(camera.rotation.y)*(playerSpeed*0.15);
+				zMovement += Math.cos(camera.rotation.y)*(playerSpeed*0.15);
 			}
 			
-			onSlope = scene.pickWithRay(cameraRay, function (mesh) {
-				if (mesh == slope1 || mesh == slope2 || mesh == slope3 || mesh == slope4) {
-					return true;
-				}
-				return false;
-			});			
-		}
+			if(moveBack){
+				xMovement -= Math.sin(camera.rotation.y)*(playerSpeed*0.15);
+				zMovement -= Math.cos(camera.rotation.y)*(playerSpeed*0.15);
+			}
+			
+			if(moveLeft){
+				zMovement += Math.sin(camera.rotation.y)*(playerSpeed*0.15);
+				xMovement -= Math.cos(camera.rotation.y)*(playerSpeed*0.15);
+			}	
+
+			if(moveRight){
+				zMovement -= Math.sin(camera.rotation.y)*(playerSpeed*0.15);
+				xMovement += Math.cos(camera.rotation.y)*(playerSpeed*0.15);
+			}
+			
+			// Cast ray to check player's surface
+			checkPlayersSurface();
+			
+			// Make the move!
+			if(onUnevenSurface.hit){
+				// Without gravity
+				players[mySocketId].moveWithCollisions(new BABYLON.Vector3(xMovement, 0, zMovement));
+				// Adjust y position so that mesh smoothly traverses
+				players[mySocketId].position.y = nextPosOnUnevenMesh();
+			}else{
+				// With gravity
+				players[mySocketId].moveWithCollisions(new BABYLON.Vector3(xMovement, gravity, zMovement));
+			}
+			
+			// Camera will follow player's mesh
+			camera.position = players[mySocketId].position;
+			
+			
+			// Player mesh rotation
+			players[mySocketId].rotation.y = camera.rotation.y - Math.PI;
+			
+		}); 
+	}
+	
+	function attackingControls(){
 		
-		
+		// Vars for determining attack dir
+		var prevCamRotX = 0;
+		var prevCamRotY = 0;
 		
 		
 		
@@ -961,80 +997,78 @@ function setupPlayer(nickname){
 		}
 		
 		
-		//////////////////		PLAYER FUNCTIONS		//////////////////
-		
-		function death(){
-			
-			//Save location of death
-			var location = camera.position;
-			
-			//Package data for broadcast
-			var data = {};
-			data.location = location;
-			data.userID = mySocketId;
-			
-			//Tell others of your death
-			socket.emit('playerDeath', data);
-			
-			
-			//Destroy FP camera
-			camera.dispose();
-		
-			//Death camera
-			camera = new BABYLON.ArcRotateCamera("myCamera", 0, 0.5, 70, new BABYLON.Vector3(location.x, location.y, location.z), scene);
-			
-			//Death effect
-			deathParticles(location);
-			
-			//Respawn after 10 seconds!
-			setTimeout(respawn, 10000);	
-		}
-		
-		
-		//////////////////		OTHERS		//////////////////
-		
 		//Attack direction checking
 		setInterval(function() {
 			prevCamRotX = camera.rotation.x;
 			prevCamRotY = camera.rotation.y;
 		}, 250);
 		
-		//Gravity
-		scene.gravity = new BABYLON.Vector3(0, gravityVal, 0);
 		
-		// Register main render loop
-		engine.runRenderLoop(function () {
-			/*if(camera.position.y<-17){
-				console.log("you dead");
-				death();
-			}*/
-
-			//Cast ray beneath player
-			castCameraRay();
-
-			//Look at keys being held down... if none, the player is not moving
-			if(keyArray.length!=0){
-				moving = false;
-			}else{
-				moving = true;
-			}
+		function attack(){
+			// Ratios to compare which axis had more movement
+			var xRotRatio = Math.abs(camera.rotation.x - prevCamRotX);
+			var yRotRatio = Math.abs(camera.rotation.y - prevCamRotY);
 			
-			//if player is on slope then reverse gravity's effects
-			if (canJump && !moving) {
-				scene.gravity = new BABYLON.Vector3(0, 0, 0);
-			}else{
-				scene.gravity = new BABYLON.Vector3(0, gravityVal, 0);
+			//Vertical attack!
+			if(xRotRatio >= yRotRatio){
+				//Upwards
+				if(camera.rotation.x < prevCamRotX){
+					console.log("upwards");
+				}
+				//Downwards
+				else
+				{
+					console.log("downwards");
+				}
 			}
-		
-			//Mesh follows players camera (*offsets added here to compensate for player mesh)
-			players[mySocketId].position = new BABYLON.Vector3(camera.position.x, camera.position.y - 2, camera.position.z);
-			
-			//Player mesh rotation
-			players[mySocketId].rotation.y = camera.rotation.y - Math.PI;
-		}); 
+			//Horizontal attack!
+			else
+			{
+				//Left
+				if(camera.rotation.y < prevCamRotY){
+					console.log("Left");
+				}
+				//Right
+				else
+				{
+					console.log("Right");
+				}
+			}
+		}
 		
 	}
 	
+	function checkForDeath(){
+	
+		engine.runRenderLoop(function () {
+			// DEATH
+			if(camera.position.y<-17){
+				//Save location of death
+				var location = camera.position;
+				
+				//Package data for broadcast
+				var data = {};
+				data.location = location;
+				data.userID = mySocketId;
+				
+				//Tell others of your death
+				socket.emit('playerDeath', data);
+				
+				//Destroy FP camera
+				camera.dispose();
+			
+				//Death camera
+				camera = new BABYLON.ArcRotateCamera("myCamera", 0, 0.5, 70, new BABYLON.Vector3(location.x, location.y, location.z), scene);
+				
+				//Death effect
+				deathParticles(location);
+				
+				//Respawn after 10 seconds!
+				setTimeout(respawn, 10000);	
+			}
+		});
+		
+	}
 	
 }
 
