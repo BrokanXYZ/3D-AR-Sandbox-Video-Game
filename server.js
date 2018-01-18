@@ -106,7 +106,7 @@ io.on('connection', function(socket){
 	// args contains vector3 position
 	socket.on('updatePos', function(args) {
 		args.name = socket.userID;
-		io.emit('move', args);
+		socket.broadcast.emit('move', args);
     });
 	
 	
@@ -115,6 +115,11 @@ io.on('connection', function(socket){
 		socket.broadcast.emit('playerDeath', data);
     });
 	
+	
+	//Player has changed their character's animation... send broadcast to all other clients
+	socket.on('changePlayerAnimation', function(data) {
+		socket.broadcast.emit('updateAnimation', data);
+    });
 	
 	
 	//Called when client disconnects

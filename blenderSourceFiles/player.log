@@ -1,0 +1,89 @@
+Exporter version: 5.4.2, Blender version: 2.79 (sub 0)
+========= Conversion from Blender to Babylon.js =========
+	Scene settings used:
+		selected layers only:  false
+		flat shading entire scene:  false
+		inline textures:  false
+		texture directory:  C:\Users\Brokan\Desktop\UntitledGame\blenderSourceFiles\
+	Python World class constructor completed
+	WARNING: No active camera has been assigned, or is not in a currently selected Blender layer
+	processing begun of skeleton:  metarig, id:  0
+		processing begun of bone:  hips, index:  0
+		processing begun of bone:  spine, index:  1
+		processing begun of bone:  chest, index:  2
+		processing begun of bone:  neck, index:  3
+		processing begun of bone:  head, index:  4
+		processing begun of bone:  shoulder.L, index:  5
+		processing begun of bone:  upper_arm.L, index:  6
+		processing begun of bone:  forearm.L, index:  7
+		processing begun of bone:  hand.L, index:  8
+		processing begun of bone:  thumb.01.L, index:  9
+		processing begun of bone:  thumb.02.L, index:  10
+		processing begun of bone:  palm.02.L, index:  11
+		processing begun of bone:  f_middle.01.L, index:  12
+		processing begun of bone:  f_middle.02.L, index:  13
+		processing begun of bone:  shoulder.R, index:  14
+		processing begun of bone:  upper_arm.R, index:  15
+		processing begun of bone:  forearm.R, index:  16
+		processing begun of bone:  hand.R, index:  17
+		processing begun of bone:  thumb.01.R, index:  18
+		processing begun of bone:  thumb.02.R, index:  19
+		processing begun of bone:  palm.02.R, index:  20
+		processing begun of bone:  f_middle.01.R, index:  21
+		processing begun of bone:  f_middle.02.R, index:  22
+		processing begun of bone:  foot_IK_main.L, index:  23
+		processing begun of bone:  roll_main.L, index:  24
+		processing begun of bone:  roll_back.L, index:  25
+		processing begun of bone:  roll_front.L, index:  26
+		processing begun of bone:  foot_IK.L, index:  27
+		processing begun of bone:  pole_target.L, index:  28
+		processing begun of bone:  thigh.L, index:  29
+		processing begun of bone:  shin.L, index:  30
+		processing begun of bone:  foot.L, index:  31
+		processing begun of bone:  toe.L, index:  32
+		processing begun of bone:  foot_IK_main.R, index:  33
+		processing begun of bone:  roll_main.R, index:  34
+		processing begun of bone:  roll_back.R, index:  35
+		processing begun of bone:  roll_front.R, index:  36
+		processing begun of bone:  foot_IK.R, index:  37
+		processing begun of bone:  pole_target.R, index:  38
+		processing begun of bone:  thigh.R, index:  39
+		processing begun of bone:  shin.R, index:  40
+		processing begun of bone:  foot.R, index:  41
+		processing begun of bone:  toe.R, index:  42
+		processing action bottomAttack:  in[0 - 30], out[0 - 30]
+		processing action bottomBlock:  in[0 - 5], out[40 - 45]
+		processing action leftAttack:  in[0 - 30], out[50 - 80]
+		processing action leftBlock:  in[0 - 5], out[90 - 95]
+		processing action rightAttack:  in[0 - 30], out[100 - 130]
+		processing action rightBlock:  in[0 - 5], out[140 - 145]
+		processing action run:  in[0 - 49], out[150 - 199]
+		processing action topAttack:  in[0 - 30], out[210 - 240]
+		processing action topBlock:  in[0 - 5], out[250 - 255]
+		processing action zIdle:  in[0 - 100], out[260 - 360]
+	processing begun of mesh:  Player
+		processing begun of Standard material:  Material
+		num positions      :  731
+		num normals        :  731
+		num uvs            :  1462
+		num uvs2           :  0
+		num colors         :  0
+		num indices        :  1908
+		Skeleton stats:  
+			Total Influencers:  1686
+			Avg # of influencers per vertex:  2.3064
+			Highest # of influencers observed:  4, num vertices with this:  100
+			exported as 4 influencers
+			num skeletonWeights and skeletonIndices:  2924
+	processing begun of mesh:  Sword
+		registered as also a user of material:  Material
+		num positions      :  230
+		num normals        :  230
+		num uvs            :  460
+		num uvs2           :  0
+		num colors         :  0
+		num indices        :  408
+========= Writing of scene file started =========
+========= Writing of scene file completed =========
+========= end of processing =========
+elapsed time:  0 min, 0.8208 secs
