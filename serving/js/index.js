@@ -62,14 +62,24 @@ function createWorld(){
 
 	///////  Texture Defs!  ///////
 	var stoneMat = new BABYLON.StandardMaterial("stoneMat", scene);
-	stoneMat.diffuseTexture = new BABYLON.Texture("serving/textures/rock.jpg", scene);
-	stoneMat.diffuseTexture.uScale = 2.0;
-	stoneMat.diffuseTexture.vScale = 2.0;
+	stoneMat.diffuseTexture = new BABYLON.Texture("serving/textures/stone.png", scene);
+	stoneMat.bumpTexture = new BABYLON.Texture("serving/textures/bumpMap.png", scene);
+	stoneMat.diffuseTexture.uScale = 8.0;
+	stoneMat.diffuseTexture.vScale = 5.0;
+	stoneMat.bumpTexture.uScale = 8.0;
+	stoneMat.bumpTexture.vScale = 5.0;
+	stoneMat.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+	
+	/*var smoothStoneMat = new BABYLON.StandardMaterial("smoothStoneMat", scene);
+	smoothStoneMat.diffuseTexture = new BABYLON.Texture("serving/textures/mountains3.jpg", scene);
+	smoothStoneMat.diffuseTexture.uScale = 4.0;
+	smoothStoneMat.diffuseTexture.vScale = 4.0;
+	smoothStoneMat.specularColor = new BABYLON.Color3(0, 0, 0);*/
 	
 	var bridgeMat = new BABYLON.StandardMaterial("bridgeMat", scene);
 	bridgeMat.diffuseTexture = new BABYLON.Texture("serving/textures/bridge.png", scene);
-	bridgeMat.diffuseTexture.uScale = 12.0;
-	bridgeMat.diffuseTexture.vScale = 2.0;
+	bridgeMat.diffuseTexture.uScale = 8.0;
+	bridgeMat.diffuseTexture.vScale = 1.0;
 	bridgeMat.specularColor = new BABYLON.Color3(0, 0, 0);
 	
 	var woodMat = new BABYLON.StandardMaterial("woodMat", scene);
@@ -79,16 +89,19 @@ function createWorld(){
 	woodMat.specularColor = new BABYLON.Color3(0, 0, 0);
 	
 	var lavaMaterial = new BABYLON.LavaMaterial("lava", scene);	
-	lavaMaterial.diffuseTexture = new BABYLON.Texture("serving/textures/lava.jpg", scene);
-	lavaMaterial.diffuseTexture.uScale = 7.0;
-	lavaMaterial.diffuseTexture.vScale = 7.0;
+	lavaMaterial.diffuseTexture = new BABYLON.Texture("serving/textures/lava.png", scene);
+	lavaMaterial.noiseTexture = new BABYLON.Texture("serving/textures/noise.png", scene); // ** BLANK NOISE TEXTURE **
+	//lavaMaterial.diffuseTexture.uScale = 7.0;
+	//lavaMaterial.diffuseTexture.vScale = 7.0;
+	lavaMaterial.diffuseTexture.uScale = 10.0;
+	lavaMaterial.diffuseTexture.vScale = 10.0;
 	lavaMaterial.speed = 0.06;
 	lavaMaterial.fogColor = new BABYLON.Color3(1, 0, 0);
 	
 	var groundMat = new BABYLON.StandardMaterial("groundMat", scene);
 	groundMat.diffuseTexture = new BABYLON.Texture("serving/textures/sand.png", scene);
-	groundMat.diffuseTexture.uScale = 20.0;
-	groundMat.diffuseTexture.vScale = 20.0;
+	groundMat.diffuseTexture.uScale = 15.0;
+	groundMat.diffuseTexture.vScale = 15.0;
 	groundMat.specularColor = new BABYLON.Color3(0, 0, 0);
 	
 	var mountainMat = new BABYLON.StandardMaterial("mountainMat", scene);
