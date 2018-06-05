@@ -70,11 +70,17 @@ function createWorld(){
 	stoneMat.bumpTexture.vScale = 5.0;
 	stoneMat.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
 	
-	/*var smoothStoneMat = new BABYLON.StandardMaterial("smoothStoneMat", scene);
-	smoothStoneMat.diffuseTexture = new BABYLON.Texture("serving/textures/mountains3.jpg", scene);
-	smoothStoneMat.diffuseTexture.uScale = 4.0;
-	smoothStoneMat.diffuseTexture.vScale = 4.0;
-	smoothStoneMat.specularColor = new BABYLON.Color3(0, 0, 0);*/
+	var smoothStoneMat = new BABYLON.StandardMaterial("smoothStoneMat", scene);
+	smoothStoneMat.diffuseTexture = new BABYLON.Texture("serving/textures/smoothStone.png", scene);
+	smoothStoneMat.diffuseTexture.uScale = 2.0;
+	smoothStoneMat.diffuseTexture.vScale = 2.0;
+	smoothStoneMat.specularColor = new BABYLON.Color3(0, 0, 0);
+	
+	var smoothWoodMat = new BABYLON.StandardMaterial("smoothWoodMat", scene);
+	smoothWoodMat.diffuseTexture = new BABYLON.Texture("serving/textures/smoothWood.png", scene);
+	smoothWoodMat.diffuseTexture.uScale = 3.0;
+	smoothWoodMat.diffuseTexture.vScale = 3.0;
+	smoothWoodMat.specularColor = new BABYLON.Color3(0, 0, 0);
 	
 	var bridgeMat = new BABYLON.StandardMaterial("bridgeMat", scene);
 	bridgeMat.diffuseTexture = new BABYLON.Texture("serving/textures/bridge.png", scene);
@@ -105,9 +111,9 @@ function createWorld(){
 	groundMat.specularColor = new BABYLON.Color3(0, 0, 0);
 	
 	var mountainMat = new BABYLON.StandardMaterial("mountainMat", scene);
-	/*mountainMat.diffuseTexture = new BABYLON.Texture("serving/textures/mountains.jpg", scene);
-	mountainMat.diffuseTexture.uScale = 50.0;
-	mountainMat.diffuseTexture.vScale = 50.0;*/
+	//mountainMat.diffuseTexture = new BABYLON.Texture("serving/textures/11.png", scene);
+	//mountainMat.diffuseTexture.uScale = 1.0;
+	//mountainMat.diffuseTexture.vScale = 1.0;
 	//mountainMat.specularColor = new BABYLON.Color3(0, 0, 1);
 	//mountainMat.diffuseColor = new BABYLON.Color3(1, 1, 1);
 	//mountainMat.emissiveColor = new BABYLON.Color3(-0.5,-0.5,-0.5);
@@ -239,16 +245,16 @@ function createWorld(){
 	square2.checkCollisions = true;
 	
 	//Assign textures to both sides
-	slope1.material = stoneMat;
-	slope2.material = stoneMat;
-	slope3.material = stoneMat;
-	slope4.material = stoneMat;
-	square1.material = stoneMat;
-	square2.material = stoneMat;
-	slopeSide1.material = stoneMat;
-	slopeSide2.material = stoneMat;
-	slopeSide3.material = stoneMat;
-	slopeSide4.material = stoneMat;
+	slope1.material = smoothStoneMat;
+	slope2.material = smoothStoneMat;
+	slope3.material = smoothStoneMat;
+	slope4.material = smoothStoneMat;
+	square1.material = smoothStoneMat;
+	square2.material = smoothStoneMat;
+	slopeSide1.material = smoothStoneMat;
+	slopeSide2.material = smoothStoneMat;
+	slopeSide3.material = smoothStoneMat;
+	slopeSide4.material = smoothStoneMat;
 	
 	
 	///////  Bridge!  ///////
@@ -275,10 +281,10 @@ function createWorld(){
 	post4.position = new BABYLON.Vector3(35.7, 7, -5.6);
 	post4.checkCollisions = true;
 	
-	post1.material = woodMat;
-	post2.material = woodMat;
-	post3.material = woodMat;
-	post4.material = woodMat;
+	post1.material = smoothWoodMat;
+	post2.material = smoothWoodMat;
+	post3.material = smoothWoodMat;
+	post4.material = smoothWoodMat;
 	
 	
 	///////  Stone Foundations  ///////
@@ -305,8 +311,8 @@ function createWorld(){
 	pillar2.rotation = new BABYLON.Vector3(0, degToRad(-18), 0);
 	pillar2.checkCollisions = true;
 
-	pillar1.material = stoneMat;
-	pillar2.material = stoneMat;
+	pillar1.material = smoothStoneMat;
+	pillar2.material = smoothStoneMat;
 	
 	
 	///////  Wooden Logs  ///////
@@ -350,14 +356,14 @@ function createWorld(){
 	log4.rotation = new BABYLON.Vector3(degToRad(180), 0, degToRad(90));
 	log4.checkCollisions = true;
 
-	log1.material = woodMat;
-	log2.material = woodMat;
-	log3.material = woodMat;
-	log4.material = woodMat;
-	longLog1.material = woodMat;
-	longLog2.material = woodMat;
-	longLog3.material = woodMat;
-	longLog4.material = woodMat;
+	log1.material = smoothWoodMat;
+	log2.material = smoothWoodMat;
+	log3.material = smoothWoodMat;
+	log4.material = smoothWoodMat;
+	longLog1.material = smoothWoodMat;
+	longLog2.material = smoothWoodMat;
+	longLog3.material = smoothWoodMat;
+	longLog4.material = smoothWoodMat;
 	
 	
 	///////  Lava  ///////
