@@ -85,10 +85,60 @@ function meshSetup(){
 		
 		//Save player variables to global array
 		players[uID] = playerMesh;
-		players[uID].curBodyAnimation = 0;
-		players[uID].curArmAnimation = 0;
 		players[uID].skeleton = playerSkeleton;
 		players[uID].weapon = swordMesh;
+		
+		players[uID].curBodyAnimation = 0;
+		players[uID].curArmAnimation = 0;
+		players[uID].armPrepped = false;
+		players[uID].armLock = false;
+		
+		// Set animation events
+
+		// 1. arm prep
+		var prepEventR = new BABYLON.AnimationEvent(119, function() { players[uID].armPrepped = true; }, true);
+		var prepEventL = new BABYLON.AnimationEvent(69, function() { players[uID].armPrepped = true; }, true);
+		var prepEventU = new BABYLON.AnimationEvent(19, function() { players[uID].armPrepped = true; }, true);
+		var prepEventD = new BABYLON.AnimationEvent(229, function() { players[uID].armPrepped = true; }, true);
+		
+		playerSkeleton.bones[14].animations[0].addEvent(prepEventR);
+		playerSkeleton.bones[14].animations[0].addEvent(prepEventL);
+		playerSkeleton.bones[14].animations[0].addEvent(prepEventU);
+		playerSkeleton.bones[14].animations[0].addEvent(prepEventD);
+		
+		// 2. arm unprep
+		var unprepEventR = new BABYLON.AnimationEvent(120, function() { players[uID].armPrepped = false; }, true);
+		var unprepEventL = new BABYLON.AnimationEvent(70, function() { players[uID].armPrepped = false; }, true);
+		var unprepEventU = new BABYLON.AnimationEvent(20, function() { players[uID].armPrepped = false; }, true);
+		var unprepEventD = new BABYLON.AnimationEvent(230, function() { players[uID].armPrepped = false; }, true);
+		
+		playerSkeleton.bones[14].animations[0].addEvent(unprepEventR);
+		playerSkeleton.bones[14].animations[0].addEvent(unprepEventL);
+		playerSkeleton.bones[14].animations[0].addEvent(unprepEventU);
+		playerSkeleton.bones[14].animations[0].addEvent(unprepEventD);
+		
+		// 3. arm lock
+		var lockEventR = new BABYLON.AnimationEvent(101, function() { players[uID].armLock = true; }, true);
+		var lockEventL = new BABYLON.AnimationEvent(51, function() { players[uID].armLock = true; }, true);
+		var lockEventU = new BABYLON.AnimationEvent(0, function() { players[uID].armLock = true; }, true);
+		var lockEventD = new BABYLON.AnimationEvent(211, function() { players[uID].armLock = true; }, true);
+		
+		playerSkeleton.bones[14].animations[0].addEvent(lockEventR);
+		playerSkeleton.bones[14].animations[0].addEvent(lockEventL);
+		playerSkeleton.bones[14].animations[0].addEvent(lockEventU);
+		playerSkeleton.bones[14].animations[0].addEvent(lockEventD);
+		
+		// 4. arm unlock
+		var unlockEventR = new BABYLON.AnimationEvent(130, function() { players[uID].armLock = false; }, true);
+		var unlockEventL = new BABYLON.AnimationEvent(80, function() { players[uID].armLock = false; }, true);
+		var unlockEventU = new BABYLON.AnimationEvent(30, function() { players[uID].armLock = false; }, true);
+		var unlockEventD = new BABYLON.AnimationEvent(240, function() { players[uID].armLock = false; }, true);
+		
+		playerSkeleton.bones[14].animations[0].addEvent(unlockEventR);
+		playerSkeleton.bones[14].animations[0].addEvent(unlockEventL);
+		playerSkeleton.bones[14].animations[0].addEvent(unlockEventU);
+		playerSkeleton.bones[14].animations[0].addEvent(unlockEventD);
+		
 		
 		// Start idle animation
 		scene.beginAnimation(playerSkeleton, 261, 360, true, 1.0);
@@ -400,7 +450,7 @@ function changeAnimation(newAnimationNum, animationType){
 				playerSkeleton.bones[x].animations[0].loopMode = BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT;
 			}
 			
-			// 0) Null
+			// 0) Swing/Null
 			if(newAnimationNum==0){
 				switch(players[mySocketId].curArmAnimation) {
 					case 1:
@@ -423,8 +473,23 @@ function changeAnimation(newAnimationNum, animationType){
 				
 				loop = false;
 				
-				
 				players[mySocketId].curArmAnimation = 0;
+			
+				/*while(!players[mySocketId].armPrepped){
+					
+				}
+				
+				console.log("FIRE");*/
+			
+			
+			
+			
+			
+			
+			
+			
+				// Animation execution logic is within here, so we are done
+				return;
 			
 			// 1) Right
 			}else if(newAnimationNum==1){
