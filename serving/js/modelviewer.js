@@ -87,19 +87,80 @@ function meshSetup(){
 		players[uID] = playerMesh;
 		players[uID].skeleton = playerSkeleton;
 		players[uID].weapon = swordMesh;
-		
 		players[uID].curBodyAnimation = 0;
 		players[uID].curArmAnimation = 0;
-		players[uID].armPrepped = false;
-		players[uID].armLock = false;
+		
+		
+		// Setup arm proxy
+		let armHandler = {
+			set: function(obj, prop, value){
+				if(prop === 'armPrepped'){
+					if(value){
+						// Standard functionality
+						obj[prop] = value;
+		
+						console.log(obj['armLock']);
+						console.log(players[0].curArmAnimation==0);
+		
+						// If arm is locked and the user has released left click... engage swing animation when arm is prepped
+						if(obj['armLock'] && players[0].curArmAnimation==0){
+							
+							let startFrame = 0;
+							let endFrame = 0;
+							
+							// The current arm animation is 0, so we have to use another var to store the type of swing
+							switch(obj['prevArmAnimation']) {
+								case 1:
+									startFrame = 120;
+									endFrame = 130;
+									break;
+								case 2:
+									startFrame = 70;
+									endFrame = 80;
+									break;
+								case 3:
+									startFrame = 20;
+									endFrame = 30;
+									break;
+								case 4:
+									startFrame = 230;
+									endFrame = 240;
+									break;
+							}
+							
+							loop = false;
+							players[mySocketId].curArmAnimation = 0;
+						
+							for(var x=14; x<22; x++){
+								scene.beginAnimation(players[mySocketId].skeleton.bones[x], startFrame, endFrame, false, 1.0);
+							}
+						}
+						
+					}else{
+						// Standard functionality for change to FALSE
+						obj[prop] = value;
+					}
+				}else
+				if(prop === 'armLock'){
+					obj[prop] = value;
+				}else
+				if(prop === 'prevArmAnimation'){
+					obj[prop] = value;
+				}
+			}
+		}
+		
+		players[0].armProxy = new Proxy({armPrepped: false, armLock: false, prevArmAnimation: 0}, armHandler);
+
+		
 		
 		// Set animation events
 
 		// 1. arm prep
-		var prepEventR = new BABYLON.AnimationEvent(119, function() { players[uID].armPrepped = true; }, true);
-		var prepEventL = new BABYLON.AnimationEvent(69, function() { players[uID].armPrepped = true; }, true);
-		var prepEventU = new BABYLON.AnimationEvent(19, function() { players[uID].armPrepped = true; }, true);
-		var prepEventD = new BABYLON.AnimationEvent(229, function() { players[uID].armPrepped = true; }, true);
+		var prepEventR = new BABYLON.AnimationEvent(119, function() { players[uID].armProxy.armPrepped = true; }, true);
+		var prepEventL = new BABYLON.AnimationEvent(69, function() { players[uID].armProxy.armPrepped = true; }, true);
+		var prepEventU = new BABYLON.AnimationEvent(19, function() { players[uID].armProxy.armPrepped = true; }, true);
+		var prepEventD = new BABYLON.AnimationEvent(229, function() { players[uID].armProxy.armPrepped = true; }, true);
 		
 		playerSkeleton.bones[14].animations[0].addEvent(prepEventR);
 		playerSkeleton.bones[14].animations[0].addEvent(prepEventL);
@@ -107,10 +168,10 @@ function meshSetup(){
 		playerSkeleton.bones[14].animations[0].addEvent(prepEventD);
 		
 		// 2. arm unprep
-		var unprepEventR = new BABYLON.AnimationEvent(120, function() { players[uID].armPrepped = false; }, true);
-		var unprepEventL = new BABYLON.AnimationEvent(70, function() { players[uID].armPrepped = false; }, true);
-		var unprepEventU = new BABYLON.AnimationEvent(20, function() { players[uID].armPrepped = false; }, true);
-		var unprepEventD = new BABYLON.AnimationEvent(230, function() { players[uID].armPrepped = false; }, true);
+		var unprepEventR = new BABYLON.AnimationEvent(120, function() { players[uID].armProxy.armPrepped = false; }, true);
+		var unprepEventL = new BABYLON.AnimationEvent(70, function() { players[uID].armProxy.armPrepped = false; }, true);
+		var unprepEventU = new BABYLON.AnimationEvent(20, function() { players[uID].armProxy.armPrepped = false; }, true);
+		var unprepEventD = new BABYLON.AnimationEvent(230, function() { players[uID].armProxy.armPrepped = false; }, true);
 		
 		playerSkeleton.bones[14].animations[0].addEvent(unprepEventR);
 		playerSkeleton.bones[14].animations[0].addEvent(unprepEventL);
@@ -118,10 +179,10 @@ function meshSetup(){
 		playerSkeleton.bones[14].animations[0].addEvent(unprepEventD);
 		
 		// 3. arm lock
-		var lockEventR = new BABYLON.AnimationEvent(101, function() { players[uID].armLock = true; }, true);
-		var lockEventL = new BABYLON.AnimationEvent(51, function() { players[uID].armLock = true; }, true);
-		var lockEventU = new BABYLON.AnimationEvent(0, function() { players[uID].armLock = true; }, true);
-		var lockEventD = new BABYLON.AnimationEvent(211, function() { players[uID].armLock = true; }, true);
+		var lockEventR = new BABYLON.AnimationEvent(101, function() { players[uID].armProxy.armLock = true;}, true);
+		var lockEventL = new BABYLON.AnimationEvent(51, function() { players[uID].armProxy.armLock = true; }, true);
+		var lockEventU = new BABYLON.AnimationEvent(0, function() { players[uID].armProxy.armLock = true; }, true);
+		var lockEventD = new BABYLON.AnimationEvent(211, function() { players[uID].armProxy.armLock = true; }, true);
 		
 		playerSkeleton.bones[14].animations[0].addEvent(lockEventR);
 		playerSkeleton.bones[14].animations[0].addEvent(lockEventL);
@@ -129,15 +190,21 @@ function meshSetup(){
 		playerSkeleton.bones[14].animations[0].addEvent(lockEventD);
 		
 		// 4. arm unlock
-		var unlockEventR = new BABYLON.AnimationEvent(130, function() { players[uID].armLock = false; }, true);
-		var unlockEventL = new BABYLON.AnimationEvent(80, function() { players[uID].armLock = false; }, true);
-		var unlockEventU = new BABYLON.AnimationEvent(30, function() { players[uID].armLock = false; }, true);
-		var unlockEventD = new BABYLON.AnimationEvent(240, function() { players[uID].armLock = false; }, true);
+		var unlockEventR = new BABYLON.AnimationEvent(130, function() { players[uID].armProxy.armLock = false; }, true);
+		var unlockEventL = new BABYLON.AnimationEvent(80, function() { players[uID].armProxy.armLock = false; }, true);
+		var unlockEventU = new BABYLON.AnimationEvent(30, function() { players[uID].armProxy.armLock = false; }, true);
+		var unlockEventD = new BABYLON.AnimationEvent(240, function() { players[uID].armProxy.armLock = false; }, true);
 		
 		playerSkeleton.bones[14].animations[0].addEvent(unlockEventR);
 		playerSkeleton.bones[14].animations[0].addEvent(unlockEventL);
 		playerSkeleton.bones[14].animations[0].addEvent(unlockEventU);
 		playerSkeleton.bones[14].animations[0].addEvent(unlockEventD);
+		
+		
+		
+
+
+
 		
 		
 		// Start idle animation
@@ -192,7 +259,8 @@ function movementControls(){
 					break;
 			// A
 			case 65:
-					moveLeft = true;
+					console.log(players[0].armProxy.armLock);
+					//moveLeft = true;
 					break;
 			// D
 			case 68:
@@ -426,7 +494,7 @@ function changeAnimation(newAnimationNum, animationType){
 			// 2a. Execute full animation
 			
 			//If arms are currently acting... leave them alone
-			if(players[mySocketId].curArmAnimation!=0){
+			if(players[mySocketId].armProxy.armLock){
 				for(var x=0; x<14; x++){
 					scene.beginAnimation(players[mySocketId].skeleton.bones[x], startFrame, endFrame, loop);
 				}
@@ -471,22 +539,18 @@ function changeAnimation(newAnimationNum, animationType){
 						break;
 				}
 				
-				loop = false;
-				
-				players[mySocketId].curArmAnimation = 0;
-			
-				/*while(!players[mySocketId].armPrepped){
-					
+				// Only execute animation if arm is prepped. 
+				// Otherwise the animation will be deferred to the arm proxy handler.
+				if(players[mySocketId].armProxy.armPrepped){
+					for(var x=14; x<22; x++){
+						scene.beginAnimation(players[mySocketId].skeleton.bones[x], startFrame, endFrame, false, 1.0);
+					}
+				}else{
+					// The current arm animation is 0, so we have to use another var to store the type of swing
+					players[0].armProxy.prevArmAnimation = players[mySocketId].curArmAnimation;
 				}
 				
-				console.log("FIRE");*/
-			
-			
-			
-			
-			
-			
-			
+				players[mySocketId].curArmAnimation = 0;
 			
 				// Animation execution logic is within here, so we are done
 				return;
@@ -534,7 +598,7 @@ function changeAnimation(newAnimationNum, animationType){
 						};
 					})(x));*/
 					
-				}
+			}
 			
 			
 		}
