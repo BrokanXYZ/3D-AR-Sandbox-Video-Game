@@ -83,6 +83,19 @@ function meshSetup(){
 		swordMesh.position.y = 0.031;
 		swordMesh.position.z = 0.045;
 		
+		// Set blending speed on all bones
+		for(var x=0; x<43; x++){
+				playerSkeleton.bones[x].animations[0].blendingSpeed = 0.08;
+		}
+		
+		// Enable blending on skeleton animations (EXCLUDING RIGHT ARM)
+		for(var x=0; x<14; x++){
+				playerSkeleton.bones[x].animations[0].enableBlending = true;
+		}
+		for(var x=23; x<43; x++){
+				playerSkeleton.bones[x].animations[0].enableBlending = true;
+		}
+		
 		//Save player variables to global array
 		players[uID] = playerMesh;
 		players[uID].skeleton = playerSkeleton;
@@ -90,8 +103,7 @@ function meshSetup(){
 		players[uID].curBodyAnimation = 0;
 		players[uID].curArmAnimation = 0;
 		
-		
-		// Setup arm proxy
+		// Setup arm proxy handler (setting events for 'armPrepped', 'armLock', and 'prevArmAnimation')
 		let armHandler = {
 			set: function(obj, prop, value){
 				if(prop === 'armPrepped'){
@@ -150,9 +162,9 @@ function meshSetup(){
 			}
 		}
 		
+		// The armProxy! (Uses handler above)
 		players[0].armProxy = new Proxy({armPrepped: false, armLock: false, prevArmAnimation: 0}, armHandler);
 
-		
 		
 		// Set animation events
 
@@ -193,19 +205,12 @@ function meshSetup(){
 		var unlockEventR = new BABYLON.AnimationEvent(130, function() { players[uID].armProxy.armLock = false; }, true);
 		var unlockEventL = new BABYLON.AnimationEvent(80, function() { players[uID].armProxy.armLock = false; }, true);
 		var unlockEventU = new BABYLON.AnimationEvent(30, function() { players[uID].armProxy.armLock = false; }, true);
-		var unlockEventD = new BABYLON.AnimationEvent(240, function() { players[uID].armProxy.armLock = false; }, true);
+		var unlockEventD = new BABYLON.AnimationEvent(240, function() { players[uID].armProxy.armLock = true; }, true);
 		
 		playerSkeleton.bones[14].animations[0].addEvent(unlockEventR);
 		playerSkeleton.bones[14].animations[0].addEvent(unlockEventL);
 		playerSkeleton.bones[14].animations[0].addEvent(unlockEventU);
 		playerSkeleton.bones[14].animations[0].addEvent(unlockEventD);
-		
-		
-		
-
-
-
-		
 		
 		// Start idle animation
 		scene.beginAnimation(playerSkeleton, 261, 360, true, 1.0);
@@ -328,7 +333,6 @@ function attackingControls(){
 		var prevCamRotY = 0;
 		
 		
-		
 		// Mouse click events!
 		
 		//	DOWN
@@ -353,6 +357,7 @@ function attackingControls(){
 					//Left Click
 					case 0:
 						if(mouseUp){
+							// Swing!
 							changeAnimation(0, "armAnimation");
 						}else{
 							attack();
@@ -363,15 +368,16 @@ function attackingControls(){
 					case 1:
 						//console.log('Middle button clicked.');
 						//console.log(players);
-						
-
-						
-						
+		
 						break;
 					//Right Click
 					case 2:
-						//console.log('Right button clicked.');
-						
+						if(mouseUp){
+							// Stop blocking
+							//changeAnimation(0, "armAnimation"); -> stop current animation
+						}else{
+							block();
+						}
 						
 						
 						break;
@@ -395,7 +401,7 @@ function attackingControls(){
 			var xRotRatio = Math.abs(camera.alpha - prevCamRotX);
 			var yRotRatio = Math.abs(camera.beta - prevCamRotY);
 			
-			//Horizontal attack!
+			//Horizontal swipe!
 			if(xRotRatio >= yRotRatio){
 				//Right
 				if(camera.alpha < prevCamRotX){
@@ -409,7 +415,7 @@ function attackingControls(){
 					return 1;
 				}
 			}
-			//Vertical attack!
+			//Vertical swipe!
 			else
 			{
 				//Downwards
@@ -432,29 +438,46 @@ function attackingControls(){
 			var movementDir = getDirection();
 			
 			switch (movementDir) {
-					case 0:
-						//Right
-						changeAnimation(1, "armAnimation");
-						break;
-					case 1:
-						//Left
-						changeAnimation(2, "armAnimation");
-						break;
-					case 2:
-						//Down
-						changeAnimation(3, "armAnimation");
-						break;
-					case 3:
-						//Up
-						changeAnimation(4, "armAnimation");
-						break;
-
-					default:
-						console.log('Unexpected direction?? ' + movementDir);
-				}
+				case 0:
+					//Right
+					changeAnimation(1, "armAnimation");
+					break;
+				case 1:
+					//Left
+					changeAnimation(2, "armAnimation");
+					break;
+				case 2:
+					//Down
+					changeAnimation(3, "armAnimation");
+					break;
+				case 3:
+					//Up
+					changeAnimation(4, "armAnimation");
+					break;
+			}
+		}
+		
+		function block(){
+			var movementDir = getDirection();
 			
-			
-			
+			switch (movementDir) {
+				case 0:
+					//Right
+					changeAnimation(5, "armAnimation");
+					break;
+				case 1:
+					//Left
+					changeAnimation(6, "armAnimation");
+					break;
+				case 2:
+					//Down
+					changeAnimation(7, "armAnimation");
+					break;
+				case 3:
+					//Up
+					changeAnimation(8, "armAnimation");
+					break;
+			}
 		}
 		
 	}
@@ -555,34 +578,60 @@ function changeAnimation(newAnimationNum, animationType){
 				// Animation execution logic is within here, so we are done
 				return;
 			
-			// 1) Right
+			// 1) Right Attack
 			}else if(newAnimationNum==1){
 				players[mySocketId].curArmAnimation = 1;
 				startFrame = 101;
 				endFrame = 120;
 				loop = true;
 				
-			// 2) Left
+			// 2) Left Attack
 			}else if(newAnimationNum==2){
 				players[mySocketId].curArmAnimation = 2;
 				startFrame = 51;
 				endFrame = 70;
 				loop = true;
 				
-				
-			// 3) Down
+			// 3) Down Attack
 			}else if(newAnimationNum==3){
 				players[mySocketId].curArmAnimation = 3;
 				startFrame = 0;
 				endFrame = 20;
 				loop = true;
 				
-				
-			// 4) Up
+			// 4) Up Attack
 			}else if(newAnimationNum==4){
 				players[mySocketId].curArmAnimation = 4;
 				startFrame = 211;
 				endFrame = 230;
+				loop = true;
+				
+			// 5) Right Block
+			}else if(newAnimationNum==5){
+				players[mySocketId].curArmAnimation = 5;
+				startFrame = 141;
+				endFrame = 145;
+				loop = true;
+				
+			// 6) Left Block
+			}else if(newAnimationNum==6){
+				players[mySocketId].curArmAnimation = 6;
+				startFrame = 91;
+				endFrame = 95;
+				loop = true;
+				
+			// 7) Down Block
+			}else if(newAnimationNum==7){
+				players[mySocketId].curArmAnimation = 7;
+				startFrame = 41;
+				endFrame = 45;
+				loop = true;
+				
+			// 8) Up Block
+			}else if(newAnimationNum==8){
+				players[mySocketId].curArmAnimation = 8;
+				startFrame = 251;
+				endFrame = 255;
 				loop = true;
 				
 			}
