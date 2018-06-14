@@ -26,16 +26,13 @@ var camera;
 // No gravity on these! So, that player doesn't slide
 var unevenMeshes = [];
 
-
-
-
-var testMesh;
-
-
 function initializeBabylon(){
 	canvas = document.getElementById("gameCanvas");
 	engine = new BABYLON.Engine(canvas, true);
 	scene = new BABYLON.Scene(engine);
+	
+	// Enable worker collisions (may not be supported by browser)
+	//scene.workerCollisions = true; 
 	
 	// Render scene
 	engine.runRenderLoop(function () {
@@ -620,11 +617,9 @@ function setupSocketIO(){
 			players[playerID].weapon = null;
 			
 			//Delete player mesh
-			players[playerID].dispose();
+			players[playerID].characterMesh.dispose();
 			players[playerID] = null;
 		}
-		
-		
 		
 		//Update active clients
 		updateActiveClients();
@@ -632,14 +627,16 @@ function setupSocketIO(){
 	
 
 	socket.on('move', function(args) {
-		var name = args.name;
-
-		if(players[name] != undefined) {
-			players[name].position.x = args.posX;
-			players[name].position.y = args.posY - 2.0;
-			players[name].position.z = args.posZ;
+		var userID = args.userID;
+		
+		if(players[userID] != undefined) {
 			
-			players[name].rotation.y = args.rotY
+			
+			players[userID].characterMesh.position.x = args.posX;
+			players[userID].characterMesh.position.y = args.posY;
+			players[userID].characterMesh.position.z = args.posZ;
+			
+			players[userID].characterMesh.rotation.y = args.rotY
 		}
 	});
 	
@@ -665,119 +662,27 @@ function setupSocketIO(){
 		animationType = data.animationType;
 		playerID = data.playerID;
 		
-		players[playerID].curAnimation = animationNum;
+		console.log("update player: " + playerID);
 		
-		// 1. Determine type of animation 
-		if(animationType=="wholeBodyAnimation"){
-			//Idle
-			if(animationNum==0){
-				scene.beginAnimation(players[playerID].skeleton, 261, 360, true, 1.0);
-			//Run
-			}else if(animationNum==1){
-				//Idle -> Run
-				scene.beginAnimation(players[playerID].skeleton, 151, 174, false, 1.0,
-				function onAnimationEnd(){
-					//If player is still holding forward... execute looped run cycle
-					if(players[playerID].curAnimation==1){
-						scene.beginAnimation(players[playerID].skeleton, 175, 199, true, 1.0);
-					}
-				});	
-
-			//Back peddle
-			}else if(animationNum==2){
-				//scene.beginAnimation(players[playerID].skeleton, 134, 110, true, 1.0);
-			}
-		}else if(animationType=="armAnimation"){
-			
-			var armBones = new BABYLON.AnimationGroup("armBones");
-
-			for(var x=14; x<23; x++){
-				armBones.addTargetedAnimation(players[playerID].skeleton.bones[x].animations[0], players[playerID].skeleton.bones[x]);
-			}
-			
-			
-			var arm2Bones = new BABYLON.AnimationGroup("arm2Bones");
-
-			for(var x=14; x<23; x++){
-				arm2Bones.addTargetedAnimation(players[playerID].skeleton.bones[x].animations[0], players[playerID].skeleton.bones[x]);
-			}
-			
-			
-			
-			armBones.onAnimationEndObservable.add(function(){
-					arm2Bones.play(true);
-			});
-			
-			
-			
-			//4 attacks
-			//    1. prepare
-			//    2. release
-			
-			
-			//4 blocks
-			//    1. Just block!
-			
-			
-			//Top Attack
-			if(animationNum==3){
-				
-				
-				
-				arm2Bones._from = 230;
-				arm2Bones._to = 230;
-				
-				armBones._from = 211;
-				armBones._to = 230;
-				armBones.play(false);
-				
-				
-				
-				
-			}else if(animationNum==4){
-				
-				
-				
-				arm2Bones._from = 20;
-				arm2Bones._to = 20;
-				
-				armBones._from = 1;
-				armBones._to = 20;
-				armBones.play(false);
-				
-				
-				
-			}
-			
-			
-			
-			console.log("ARM");
-		}
-		
-		
-		
-		
-		
-		
-		
-		
-		
+		updatePlayerAnimation(animationNum, animationType, playerID, false)
 	});
 	
 	
 	function createAnotherPlayer(uID, uColor){
-		BABYLON.SceneLoader.ImportMesh("", "serving/meshes/", "player.babylon", scene, function (newMeshes, particleSystems, skeletons) {
-			
+		BABYLON.SceneLoader.ImportMesh("", "/serving/meshes/", "player.babylon", scene, function (newMeshes, particleSystems, skeletons) {
+		
+			//Imported mesh results
 			playerMesh = newMeshes[0];
 			playerSkeleton = skeletons[0];
 			swordMesh = newMeshes[1];
 			
-			
+			//Player material
 			var playerMat = new BABYLON.StandardMaterial("mat_" + uID, scene);
-			playerMat.emissiveColor = new BABYLON.Color3(uColor[0],uColor[1],uColor[2]);
-			playerMat.diffuseColor = new BABYLON.Color3(0,0,0);
+			playerMat.emissiveColor = new BABYLON.Color3(0,0,0);
+			playerMat.diffuseColor = new BABYLON.Color3(uColor[0],uColor[1],uColor[2]);
 			playerMat.specularColor = new BABYLON.Color3(0,0,0);
 			
+			//Sword material
 			var swordMat = new BABYLON.StandardMaterial("swordMat_" + uID, scene);
 			swordMat.emissiveColor = new BABYLON.Color3(0.6,0.6,0.6);
 			swordMat.diffuseColor = new BABYLON.Color3(0,0,0);
@@ -785,34 +690,51 @@ function setupSocketIO(){
 			
 			//Player model
 			playerMesh.material = playerMat;
-			playerMesh.checkCollisions = true;
+			playerMesh.checkCollisions = false;
+			playerMesh.isPickable = false;
 			playerMesh.scaling = new BABYLON.Vector3(1.25,1.25,1.25);
 			
-			players[uID] = playerMesh;
-			players[uID].curAnimation = 0;
-			players[uID].skeleton = playerSkeleton;
-			
-			//SWORD!
+			//Sword setup
 			swordMesh.material = swordMat;
-			players[uID].weapon = swordMesh;
 			swordMesh.attachToBone(playerSkeleton.bones[20], playerMesh);
 			
 			//Offset sword so its in correct position
 			swordMesh.rotation.x = 2.984;
 			swordMesh.rotation.y = 3.078;
 			swordMesh.rotation.z = 1.602;
-			
 			swordMesh.position.x = 0.265;
 			swordMesh.position.y = 0.031;
 			swordMesh.position.z = 0.045;
 			
+			// Set blending speed on all bones
+			for(var x=0; x<43; x++){
+					playerSkeleton.bones[x].animations[0].blendingSpeed = 0.08;
+			}
+			// Enable blending on skeleton animations (EXCLUDING RIGHT ARM)
+			for(var x=0; x<14; x++){
+					playerSkeleton.bones[x].animations[0].enableBlending = true;
+			}
+			for(var x=23; x<43; x++){
+					playerSkeleton.bones[x].animations[0].enableBlending = true;
+			}
+			
+			//Save player variables to global array
+			players[uID] = [];
+			players[uID].characterMesh = playerMesh;
+			players[uID].skeleton = playerSkeleton;
+			players[uID].weapon = swordMesh;
+			players[uID].curBodyAnimation = 0;
+			players[uID].curArmAnimation = 0;
+			players[uID].armProxy = [];
+			players[uID].armProxy.armPrepped = true;
+			players[uID].armProxy.armLock = false;
 			
 			// Start idle animation
-			scene.beginAnimation(playerSkeleton, 260, 360, true, 1.0);
+			scene.beginAnimation(playerSkeleton, 261, 360, true, 1.0);
+			
 		});
 	}
 }
-
 
 
 //Start game functions (called from index.hmtl)
@@ -849,7 +771,8 @@ function setupGUI(){
 function setupPlayer(nickname){
 	
 	respawn();
-	meshSetup();
+	playerTrackingBoxSetup();
+	playerCharacterSetup();
 	movementControls();
 	attackingControls();
 	checkForDeath();
@@ -872,6 +795,9 @@ function setupPlayer(nickname){
 		camera.angularSensibility = 1000;
 		camera.inertia = 0.2;
 		
+		//Min z
+		camera.minZ 	= 0;
+		
 		//Disable camera movement
 		camera.keysDown = [9999];
 		camera.keysUp = [9999];
@@ -885,22 +811,22 @@ function setupPlayer(nickname){
 		respawnParticles(camera);
 	}
 	
-	function meshSetup(){
+	function playerTrackingBoxSetup(){
+		
+		players[mySocketId] = [];
+		
 		//Create player's Mesh
-		players[mySocketId] = BABYLON.Mesh.CreateBox("me", 1, scene);
+		players[mySocketId].trackingBox = BABYLON.Mesh.CreateBox("me", 1, scene);
 		
 		//Define player's collision ZONE!
-		players[mySocketId].ellipsoid = new BABYLON.Vector3(1.5, 2.0, 1.5);
+		players[mySocketId].trackingBox.ellipsoid = new BABYLON.Vector3(1.5, 2.0, 1.5);
 		
 		//Player doesn't need to see their own mesh
-		players[mySocketId].visibility = false;
+		players[mySocketId].trackingBox.visibility = false;
 		
-		//Configure player's sphere
-		players[mySocketId].position = new BABYLON.Vector3(0, 9.5, 0);
-		players[mySocketId].isPickable = false;
-		
-		//Player will start with idle animation
-		players[mySocketId].curAnimation = 0;
+		//Configure player's tracking box
+		players[mySocketId].trackingBox.position = new BABYLON.Vector3(0, 9.5, 0);
+		players[mySocketId].trackingBox.isPickable = false;
 		
 		//Package player data
 		var playerData = {};
@@ -909,24 +835,212 @@ function setupPlayer(nickname){
 		playerData.color = [Math.random(), Math.random(), Math.random()];
 		playerData.nickname = nickname;
 		
+		// Set player 1's color
+		players[mySocketId].color = playerData.color;
+		
 		//Let the server know the player has been created
 		socket.emit('playerInit', playerData);
 		
 		//Update active client list
 		updateActiveClients();
+	}
+	
+	function playerCharacterSetup(){
 		
-		//Set interval for sending my pos/updating others' pos
-		setInterval(function() {
-			var data = {};
-
-			data.posX = players[mySocketId].position.x;
-			data.posY = players[mySocketId].position.y;
-			data.posZ = players[mySocketId].position.z;
+		BABYLON.SceneLoader.ImportMesh("", "/serving/meshes/", "player.babylon", scene, function (newMeshes, particleSystems, skeletons) {
+		
+			//Imported mesh results
+			playerMesh = newMeshes[0];
+			playerSkeleton = skeletons[0];
+			swordMesh = newMeshes[1];
 			
-			data.rotY = players[mySocketId].rotation.y;
+			//Player material
+			var playerMat = new BABYLON.StandardMaterial("mat_" + mySocketId, scene);
+			playerMat.emissiveColor = new BABYLON.Color3(0,0,0);
+			playerMat.diffuseColor = new BABYLON.Color3(players[mySocketId].color[0],players[mySocketId].color[1],players[mySocketId].color[2]);
+			playerMat.specularColor = new BABYLON.Color3(0,0,0);
+			
+			//Sword material
+			var swordMat = new BABYLON.StandardMaterial("swordMat_" + mySocketId, scene);
+			swordMat.emissiveColor = new BABYLON.Color3(0.6,0.6,0.6);
+			swordMat.diffuseColor = new BABYLON.Color3(0,0,0);
+			swordMat.specularColor = new BABYLON.Color3(0.5,0.5,0.5);
+			
+			//Player model
+			playerMesh.material = playerMat;
+			playerMesh.checkCollisions = false;
+			playerMesh.isPickable = false;
+			playerMesh.scaling = new BABYLON.Vector3(1.25,1.25,1.25);
+			
+			//Sword setup
+			swordMesh.material = swordMat;
+			swordMesh.attachToBone(playerSkeleton.bones[20], playerMesh);
+			
+			//Offset sword so its in correct position
+			swordMesh.rotation.x = 2.984;
+			swordMesh.rotation.y = 3.078;
+			swordMesh.rotation.z = 1.602;
+			swordMesh.position.x = 0.265;
+			swordMesh.position.y = 0.031;
+			swordMesh.position.z = 0.045;
+			
+			// Set blending speed on all bones
+			for(var x=0; x<43; x++){
+					playerSkeleton.bones[x].animations[0].blendingSpeed = 0.08;
+			}
+			// Enable blending on skeleton animations (EXCLUDING RIGHT ARM)
+			for(var x=0; x<14; x++){
+					playerSkeleton.bones[x].animations[0].enableBlending = true;
+			}
+			for(var x=23; x<43; x++){
+					playerSkeleton.bones[x].animations[0].enableBlending = true;
+			}
+			
+			//Save player variables to global array
+			players[mySocketId].characterMesh = playerMesh;
+			players[mySocketId].skeleton = playerSkeleton;
+			players[mySocketId].weapon = swordMesh;
+			players[mySocketId].curBodyAnimation = 0;
+			players[mySocketId].curArmAnimation = 0;
+			//players[mySocketId].attackCheckInterval;
+			
+			
+			// Setup arm proxy handler (setting events for 'armPrepped', 'armLock', and 'prevArmAnimation')
+			let armHandler = {
+				set: function(obj, prop, value){
+					if(prop === 'armPrepped'){
+						if(value){
+							// Standard functionality
+							obj[prop] = value;
+			
+							// If arm is locked and the user has released left click... engage swing animation when arm is prepped
+							if(obj['armLock'] && players[mySocketId].curArmAnimation==0){
+								
+								let startFrame = 0;
+								let endFrame = 0;
+								
+								// The current arm animation is 0, so we have to use another var to store the type of swing
+								switch(obj['prevArmAnimation']) {
+									// Up
+									case 1:
+										startFrame = 230;
+										endFrame = 240;
+										break;
+									// Down
+									case 2:
+										startFrame = 20;
+										endFrame = 30;
+										break;
+									// Left
+									case 3:
+										startFrame = 70;
+										endFrame = 80;
+										break;
+									// Right
+									case 4:
+										startFrame = 120;
+										endFrame = 130;
+										break;
+								}
+								
+								loop = false;
+								players[mySocketId].curArmAnimation = 0;
+							
+								for(var x=14; x<22; x++){
+									scene.beginAnimation(players[mySocketId].skeleton.bones[x], startFrame, endFrame, false, 1.0);
+								}
+							}
+							
+						}else{
+							// Standard functionality for change to FALSE
+							obj[prop] = value;
+						}
+					}else
+					if(prop === 'armLock'){
+						obj[prop] = value;
+					}else
+					if(prop === 'prevArmAnimation'){
+						obj[prop] = value;
+					}
+				}
+			}
+			
+			// The armProxy! (Uses handler above)
+			players[mySocketId].armProxy = new Proxy({armPrepped: false, armLock: false, prevArmAnimation: 0}, armHandler);
 
-			socket.emit('updatePos', data);
-		}, 20);
+			
+			// Set animation events
+
+			// 1. arm prep
+			var prepEventR = new BABYLON.AnimationEvent(119, function() { players[mySocketId].armProxy.armPrepped = true;}, false);
+			var prepEventL = new BABYLON.AnimationEvent(69, function() { players[mySocketId].armProxy.armPrepped = true;}, false);
+			var prepEventD = new BABYLON.AnimationEvent(19, function() { players[mySocketId].armProxy.armPrepped = true;}, false);
+			var prepEventU = new BABYLON.AnimationEvent(229, function() { players[mySocketId].armProxy.armPrepped = true;}, false);
+			
+			playerSkeleton.bones[14].animations[0].addEvent(prepEventR);
+			playerSkeleton.bones[14].animations[0].addEvent(prepEventL);
+			playerSkeleton.bones[14].animations[0].addEvent(prepEventU);
+			playerSkeleton.bones[14].animations[0].addEvent(prepEventD);
+			
+			// 2. arm unprep
+			var unprepEventR = new BABYLON.AnimationEvent(120, function() { players[mySocketId].armProxy.armPrepped = false; players[mySocketId].attackCheckInterval = setInterval(checkAttackIntersection,50);}, false);
+			var unprepEventL = new BABYLON.AnimationEvent(70, function() { players[mySocketId].armProxy.armPrepped = false; players[mySocketId].attackCheckInterval = setInterval(checkAttackIntersection,50);}, false);
+			var unprepEventD = new BABYLON.AnimationEvent(20, function() { players[mySocketId].armProxy.armPrepped = false; players[mySocketId].attackCheckInterval = setInterval(checkAttackIntersection,50);}, false);
+			var unprepEventU = new BABYLON.AnimationEvent(230, function() { players[mySocketId].armProxy.armPrepped = false; players[mySocketId].attackCheckInterval = setInterval(checkAttackIntersection,50);}, false);
+			
+			playerSkeleton.bones[14].animations[0].addEvent(unprepEventR);
+			playerSkeleton.bones[14].animations[0].addEvent(unprepEventL);
+			playerSkeleton.bones[14].animations[0].addEvent(unprepEventU);
+			playerSkeleton.bones[14].animations[0].addEvent(unprepEventD);
+			
+			// 3. arm lock
+			var lockEventR = new BABYLON.AnimationEvent(101, function() { players[mySocketId].armProxy.armLock = true;}, false);
+			var lockEventL = new BABYLON.AnimationEvent(51, function() { players[mySocketId].armProxy.armLock = true; }, false);
+			var lockEventD = new BABYLON.AnimationEvent(0, function() { players[mySocketId].armProxy.armLock = true; }, false);
+			var lockEventU = new BABYLON.AnimationEvent(211, function() { players[mySocketId].armProxy.armLock = true; }, false);
+			
+			playerSkeleton.bones[14].animations[0].addEvent(lockEventR);
+			playerSkeleton.bones[14].animations[0].addEvent(lockEventL);
+			playerSkeleton.bones[14].animations[0].addEvent(lockEventU);
+			playerSkeleton.bones[14].animations[0].addEvent(lockEventD);
+			
+			// 4. arm unlock
+			var unlockEventR = new BABYLON.AnimationEvent(130, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval);}, false);
+			var unlockEventL = new BABYLON.AnimationEvent(80, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval);}, false);
+			var unlockEventD = new BABYLON.AnimationEvent(30, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval);}, false);
+			var unlockEventU = new BABYLON.AnimationEvent(240, function() { players[mySocketId].armProxy.armLock = true; clearInterval(players[mySocketId].attackCheckInterval);}, false);
+			
+			playerSkeleton.bones[14].animations[0].addEvent(unlockEventR);
+			playerSkeleton.bones[14].animations[0].addEvent(unlockEventL);
+			playerSkeleton.bones[14].animations[0].addEvent(unlockEventU);
+			playerSkeleton.bones[14].animations[0].addEvent(unlockEventD);
+			
+			// Character mesh will follow tracking box
+			engine.runRenderLoop(function () {
+				players[mySocketId].characterMesh.position.x = players[mySocketId].trackingBox.position.x;
+				players[mySocketId].characterMesh.position.y = players[mySocketId].trackingBox.position.y - 2;
+				players[mySocketId].characterMesh.position.z = players[mySocketId].trackingBox.position.z;
+				players[mySocketId].characterMesh.rotation.y = players[mySocketId].trackingBox.rotation.y;
+			});
+			
+			//Set interval for sending player 1's position to others
+			setInterval(function() {
+				var data = {};
+
+				data.posX = players[mySocketId].characterMesh.position.x;
+				data.posY = players[mySocketId].characterMesh.position.y;
+				data.posZ = players[mySocketId].characterMesh.position.z;
+				
+				data.rotY = players[mySocketId].characterMesh.rotation.y;
+
+				socket.emit('updatePos', data);
+			}, 20);
+			
+			// Start idle animation
+			scene.beginAnimation(playerSkeleton, 261, 360, true, 1.0);
+			
+		});
+		
 	}
 	
 	function movementControls(){
@@ -961,14 +1075,14 @@ function setupPlayer(nickname){
 				case 87:
 						if(!moveForward){
 							moveForward = true;
-							changeAnimation(1, "wholeBodyAnimation");
+							updatePlayerAnimation(1, "wholeBodyAnimation", mySocketId, true);
 						}
 						break;
 				// S
 				case 83:
 						if(!moveBack){
 							moveBack = true;
-							changeAnimation(2, "wholeBodyAnimation");
+							updatePlayerAnimation(2, "wholeBodyAnimation", mySocketId, true);
 						}
 						break;
 				// A
@@ -988,12 +1102,12 @@ function setupPlayer(nickname){
 				// W
 				case 87:
 						moveForward = false;
-						changeAnimation(0, "wholeBodyAnimation");
+						updatePlayerAnimation(0, "wholeBodyAnimation", mySocketId, true);
 						break;
 				// S
 				case 83:
 						moveBack = false;
-						changeAnimation(0, "wholeBodyAnimation");
+						updatePlayerAnimation(0, "wholeBodyAnimation", mySocketId, true);
 						break;
 				// A
 				case 65:
@@ -1056,8 +1170,8 @@ function setupPlayer(nickname){
 
 				// Animation keys
 				var keys = [];
-				keys.push({ frame: 0, value: players[mySocketId].position.y });
-				keys.push({ frame: 25, value: players[mySocketId].position.y + 2 });
+				keys.push({ frame: 0, value: players[mySocketId].trackingBox.position.y });
+				keys.push({ frame: 25, value: players[mySocketId].trackingBox.position.y + 2 });
 				jump.setKeys(keys);
 
 				// Easing function
@@ -1066,8 +1180,8 @@ function setupPlayer(nickname){
 				jump.setEasingFunction(easingFunction);
 
 				// Push animation over... and go!
-				players[mySocketId].animations.push(jump);
-				scene.beginAnimation(players[mySocketId], 0, 20, false);
+				players[mySocketId].trackingBox.animations.push(jump);
+				scene.beginAnimation(players[mySocketId].trackingBox, 0, 20, false);
 		}
 		
 	
@@ -1105,19 +1219,21 @@ function setupPlayer(nickname){
 			// Make the move!
 			if(onUnevenSurface.hit){
 				// Without gravity
-				players[mySocketId].moveWithCollisions(new BABYLON.Vector3(xMovement, 0, zMovement));
-				// Adjust y position so that mesh smoothly traverses
-				players[mySocketId].position.y = nextPosOnUnevenMesh();
+				players[mySocketId].trackingBox.moveWithCollisions(new BABYLON.Vector3(xMovement, 0, zMovement));
+				// Adjust y position so that player smoothly traverses
+				players[mySocketId].trackingBox.position.y = nextPosOnUnevenMesh();
 			}else{
 				// With gravity
-				players[mySocketId].moveWithCollisions(new BABYLON.Vector3(xMovement, gravity, zMovement));
+				players[mySocketId].trackingBox.moveWithCollisions(new BABYLON.Vector3(xMovement, gravity, zMovement));
 			}
 			
-			// Camera will follow player's mesh
-			camera.position = players[mySocketId].position;
+			// Camera will follow player's tracking box
+			camera.position.x = players[mySocketId].trackingBox.position.x;
+			camera.position.y = players[mySocketId].trackingBox.position.y;
+			camera.position.z = players[mySocketId].trackingBox.position.z;
 			
-			// Player mesh rotation
-			players[mySocketId].rotation.y = camera.rotation.y - Math.PI;
+			// Player rotation
+			players[mySocketId].trackingBox.rotation.y = camera.rotation.y - Math.PI;
 			
 		}); 
 	}
@@ -1129,20 +1245,19 @@ function setupPlayer(nickname){
 		var prevCamRotY = 0;
 		
 		
-		
 		// Mouse click events!
 		
 		//	DOWN
-		canvas.addEventListener('mousedown', function (e){
+		canvas.addEventListener('pointerdown', function (e){
 				whichButton(e, false);
 		});
 		
 		//	UP
-		canvas.addEventListener('mouseup', function (e){
+		canvas.addEventListener('pointerup', function (e){
 				whichButton(e, true);
 		});
 
-		var whichButton = function (e, mouseUp) {
+		var whichButton = function (e, isMouseUp) {
 			// Handle different event models (for IE?)
 			var e = e || window.event;
 			var btnCode;
@@ -1153,28 +1268,27 @@ function setupPlayer(nickname){
 				switch (btnCode) {
 					//Left Click
 					case 0:
-						if(mouseUp){
-							
+						if(isMouseUp){
+							// Swing!
+							updatePlayerAnimation(0, "armAnimation", mySocketId, true);
 						}else{
 							attack();
 						}
-						
 						break;
+						
 					//Middle Button Click
 					case 1:
 						//console.log('Middle button clicked.');
-						//console.log(players);
-						
-
-						
-						
 						break;
+						
 					//Right Click
 					case 2:
-						//console.log('Right button clicked.');
-						
-						
-						
+						if(isMouseUp){
+							// Stop blocking
+							//changeAnimation(0, "armAnimation"); -> stop current animation
+						}else{
+							block();
+						}
 						break;
 
 					default:
@@ -1200,53 +1314,79 @@ function setupPlayer(nickname){
 			if(xRotRatio >= yRotRatio){
 				//Upwards
 				if(camera.rotation.x < prevCamRotX){
-					return 0;
+					return 1;
 				}
 				//Downwards
 				else
 				{
-					return 1;
+					return 2;
 				}
 			}
 			//Horizontal attack!
-			else
-			{
+			else{
 				//Left
 				if(camera.rotation.y < prevCamRotY){
-					return 2;
+					return 3;
 				}
 				//Right
 				else
 				{
-					return 3;
+					return 4;
 				}
 			}
 		}
-		
 		
 		
 		function attack(){
 			var movementDir = getDirection();
 			
 			switch (movementDir) {
-					case 0:
-						changeAnimation(3, "armAnimation");
-						break;
+					//UP
 					case 1:
-						changeAnimation(4, "armAnimation");
+						updatePlayerAnimation(1, "armAnimation", mySocketId, true);
 						break;
+					//DOWN
 					case 2:
+						updatePlayerAnimation(2, "armAnimation", mySocketId, true);
 						break;
-						
+					//LEFT
 					case 3:
+						updatePlayerAnimation(3, "armAnimation", mySocketId, true);
+						break;	
+					//RIGHT
+					case 4:
+						updatePlayerAnimation(4, "armAnimation", mySocketId, true);
 						break;
 
 					default:
 						console.log('Unexpected direction?? ' + movementDir);
 				}
+		}
+		
+		function block(){
+			var movementDir = getDirection();
 			
-			
-			
+			switch (movementDir) {
+					//UP
+					case 1:
+						updatePlayerAnimation(5, "armAnimation", mySocketId, true);
+						break;
+					//DOWN
+					case 2:
+						updatePlayerAnimation(6, "armAnimation", mySocketId, true);
+						break;
+					//LEFT
+					case 3:
+						updatePlayerAnimation(7, "armAnimation", mySocketId, true);
+						break;	
+					//RIGHT
+					case 4:
+						updatePlayerAnimation(8, "armAnimation", mySocketId, true);
+						break;
+
+					default:
+						console.log('Unexpected direction?? ' + movementDir);
+				}
 		}
 		
 	}
@@ -1283,22 +1423,200 @@ function setupPlayer(nickname){
 		
 	}
 	
-	function changeAnimation(newAnimationNum, animationType){
-		//update players animation
-		players[mySocketId].curAnimation = newAnimationNum
-		
-		//Send playerID and animation #
-		data = {};
-		data.playerID = mySocketId;
-		data.newAnimationNum = newAnimationNum;
-		data.animationType = animationType;
-		
-		//broadcast to other players
-		socket.emit('changePlayerAnimation', data);
+	function checkAttackIntersection(){
+		//if(players[].weapon.intersectsMesh(players[1], false))
+			//console.log("You hit player: " );
 	}
 }
 
 
+//Player animation changing logic
+function updatePlayerAnimation(newAnimationNum, animationType, playerSocketId, isPlayer1){
+	
+		if(isPlayer1){
+			//Package data (only for player 1)
+			data = {};
+			data.playerID = playerSocketId;
+			data.newAnimationNum = newAnimationNum;
+			data.animationType = animationType;
+		}
+		
+		// Determine type of animation & animation data
+		var startFrame = 0;
+		var endFrame = 0;
+		var loop = false;
+		
+		// WHOLE BODY
+		if(animationType=="wholeBodyAnimation"){
+			// 0) Idle
+			if(newAnimationNum==0){
+				players[playerSocketId].curBodyAnimation = 0;
+				startFrame = 261;
+				endFrame = 360;
+				loop = true;
+				
+			// 1) Run
+			}else if(newAnimationNum==1){
+				players[playerSocketId].curBodyAnimation = 1;
+				startFrame = 175;
+				endFrame = 199;	
+				loop = true;				
+				
+			// 2) Back peddle
+			}else if(newAnimationNum==2){
+				players[playerSocketId].curBodyAnimation = 2;
+				startFrame = 199;
+				endFrame = 175;
+				loop = true;
+			}
+			
+			// Execute full animation
+			
+			//If arms are currently acting... leave them alone
+			if(players[playerSocketId].armProxy.armLock){
+				for(var x=0; x<14; x++){
+					scene.beginAnimation(players[playerSocketId].skeleton.bones[x], startFrame, endFrame, loop);
+				}
+				for(var x=23; x<43; x++){
+					scene.beginAnimation(players[playerSocketId].skeleton.bones[x], startFrame, endFrame, loop);
+				}
+			//Else include all bones
+			}else{
+				//Cycle Arm animations (loop)
+				for(var x=14; x<23; x++){
+					playerSkeleton.bones[x].animations[0].loopMode = BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE;
+				}
+				scene.beginAnimation(players[playerSocketId].skeleton, startFrame, endFrame, loop);
+			}
+			
+		// ARM(s) ONLY
+		}else if(animationType=="armAnimation"){
+			
+			//Override arm animations (so that they pause at the final frame)
+			for(var x=14; x<23; x++){
+				playerSkeleton.bones[x].animations[0].loopMode = BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT;
+			}
+			
+			// 0) Swing/Null
+			if(newAnimationNum==0){
+				
+				switch(players[playerSocketId].curArmAnimation) {
+					// Up
+					case 1:
+						startFrame = 230;
+						endFrame = 240;
+						break;
+					// Down
+					case 2:
+						startFrame = 20;
+						endFrame = 30;
+						break;
+					// Left
+					case 3:
+						startFrame = 70;
+						endFrame = 80;
+						break;
+					// Right
+					case 4:
+						startFrame = 120;
+						endFrame = 130;
+						break;
+				}
+				
+				// Only execute animation if arm is prepped. 
+				// Otherwise the animation will be deferred to the arm proxy handler.
+				if(players[playerSocketId].armProxy.armPrepped){
+					for(var x=14; x<22; x++){
+						scene.beginAnimation(players[playerSocketId].skeleton.bones[x], startFrame, endFrame, false, 1.0);
+					}
+					
+					//broadcast to other players
+					if(isPlayer1){
+						socket.emit('changePlayerAnimation', data);
+					}
+				}else{
+					// The current arm animation is 0, so we have to use another var to store the type of swing
+					players[playerSocketId].armProxy.prevArmAnimation = players[playerSocketId].curArmAnimation;
+					
+				}
+				
+				players[playerSocketId].curArmAnimation = 0;
+			
+				// Animation execution logic is within here, so we are done
+				return;
+			
+			// 1) Up Attack
+			}else if(newAnimationNum==1){
+				players[playerSocketId].curArmAnimation = 1;
+				startFrame = 211;
+				endFrame = 230;
+				
+				loop = true;
+				
+			// 2) Down Attack
+			}else if(newAnimationNum==2){
+				players[playerSocketId].curArmAnimation = 2;
+				startFrame = 0;
+				endFrame = 20;
+				
+				loop = true;
+				
+			// 3) Left Attack
+			}else if(newAnimationNum==3){
+				players[playerSocketId].curArmAnimation = 3;
+				startFrame = 51;
+				endFrame = 70;
+				loop = true;
+				
+			// 4) Right Attack
+			}else if(newAnimationNum==4){
+				players[playerSocketId].curArmAnimation = 4;
+				startFrame = 101;
+				endFrame = 120;
+				loop = true;
+				
+			// 5) Up Block
+			}else if(newAnimationNum==5){
+				players[playerSocketId].curArmAnimation = 5;
+				startFrame = 251;
+				endFrame = 255;
+				loop = true;
+				
+			// 6) Down Block
+			}else if(newAnimationNum==6){
+				players[playerSocketId].curArmAnimation = 6;
+				startFrame = 41;
+				endFrame = 45;
+				loop = true;
+				
+			// 7) Left Block
+			}else if(newAnimationNum==7){
+				players[playerSocketId].curArmAnimation = 7;
+				startFrame = 91;
+				endFrame = 95;
+				loop = true;
+				
+			// 8) Right Block
+			}else if(newAnimationNum==8){
+				players[playerSocketId].curArmAnimation = 8;
+				startFrame = 141;
+				endFrame = 145;
+				loop = true;
+			}
+			
+			// Execute arm animation
+			for(var x=14; x<22; x++){
+					scene.beginAnimation(players[playerSocketId].skeleton.bones[x], startFrame, endFrame, loop, 1.0)
+			}
+			
+		}
+		
+		//broadcast to other players
+		if(isPlayer1){
+			socket.emit('changePlayerAnimation', data);
+		}
+	
+}
 
 
 //Helpers

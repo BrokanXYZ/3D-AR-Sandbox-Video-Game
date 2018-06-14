@@ -10,6 +10,11 @@ var camera;
 var players = [];
 var uID = mySocketId = 0;
 
+var hitBox;
+
+
+
+
 
 function initializeBabylon(){
 	canvas = document.getElementById("gameCanvas");
@@ -38,13 +43,67 @@ function initializeBabylon(){
 		
 function createScene(){
 	
-	camera = new BABYLON.ArcRotateCamera("camera", -2, Math.PI/2, 5, new BABYLON.Vector3(0, 1, 0), scene);
+	camera = new BABYLON.ArcRotateCamera("camera", -2, Math.PI/2, 5, new BABYLON.Vector3(0, 1, -0.5), scene);
 	camera.attachControl(canvas, true);
 	camera.wheelDeltaPercentage = 0.01;
 	var light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), scene);
 
+	
+	
+	
+	BABYLON.SceneLoader.ImportMesh("", "/serving/meshes/", "player.babylon", scene, function (newMeshes, particleSystems, skeletons) {
+		//Imported mesh results
+		playerMesh = newMeshes[0];
+		playerSkeleton = skeletons[0];
+		swordMesh = newMeshes[1];
+		
+		playerMesh.showBoundingBox = true;
+		
+		//Player material
+		var playerMat = new BABYLON.StandardMaterial("mat_" + uID, scene);
+		playerMat.emissiveColor = new BABYLON.Color3(0,0,0);
+		playerMat.diffuseColor = new BABYLON.Color3(.65,1,0);
+		playerMat.specularColor = new BABYLON.Color3(0,0,0);
+		
+		//Sword material
+		var swordMat = new BABYLON.StandardMaterial("swordMat_" + uID, scene);
+		swordMat.emissiveColor = new BABYLON.Color3(0.6,0.6,0.6);
+		swordMat.diffuseColor = new BABYLON.Color3(0,0,0);
+		swordMat.specularColor = new BABYLON.Color3(0.5,0.5,0.5);
+		
+		//Player model
+		playerMesh.material = playerMat;
+		playerMesh.checkCollisions = true;
+		playerMesh.scaling = new BABYLON.Vector3(1.25,1.25,1.25);
+		
+		//Sword setup
+		swordMesh.material = swordMat;
+		swordMesh.attachToBone(playerSkeleton.bones[20], playerMesh);
+		
+		//Offset sword so its in correct position
+		swordMesh.rotation.x = 2.984;
+		swordMesh.rotation.y = 3.078;
+		swordMesh.rotation.z = 1.602;
+		swordMesh.position.x = 0.265;
+		swordMesh.position.y = 0.031;
+		swordMesh.position.z = 0.045;
+		
+		//Postion Player
+		playerMesh.position.z = -1.5;
+		playerMesh.rotation.y = 3.14;
+		
+		//Save player variables to global array
+		players[1] = playerMesh;
+		players[1].skeleton = playerSkeleton;
+		players[1].weapon = swordMesh;
+		players[1].curBodyAnimation = 0;
+		players[1].curArmAnimation = 0;
+		
+		// Start idle animation
+		scene.beginAnimation(playerSkeleton, 261, 360, true, 1.0);
+	});
+	
 }
-
 
 function meshSetup(){
 	BABYLON.SceneLoader.ImportMesh("", "/serving/meshes/", "player.babylon", scene, function (newMeshes, particleSystems, skeletons) {
@@ -53,6 +112,8 @@ function meshSetup(){
 		playerMesh = newMeshes[0];
 		playerSkeleton = skeletons[0];
 		swordMesh = newMeshes[1];
+		
+		swordMesh.showBoundingBox = true;
 		
 		//Player material
 		var playerMat = new BABYLON.StandardMaterial("mat_" + uID, scene);
@@ -111,9 +172,6 @@ function meshSetup(){
 						// Standard functionality
 						obj[prop] = value;
 		
-						console.log(obj['armLock']);
-						console.log(players[0].curArmAnimation==0);
-		
 						// If arm is locked and the user has released left click... engage swing animation when arm is prepped
 						if(obj['armLock'] && players[0].curArmAnimation==0){
 							
@@ -171,8 +229,8 @@ function meshSetup(){
 		// 1. arm prep
 		var prepEventR = new BABYLON.AnimationEvent(119, function() { players[uID].armProxy.armPrepped = true; }, true);
 		var prepEventL = new BABYLON.AnimationEvent(69, function() { players[uID].armProxy.armPrepped = true; }, true);
-		var prepEventU = new BABYLON.AnimationEvent(19, function() { players[uID].armProxy.armPrepped = true; }, true);
-		var prepEventD = new BABYLON.AnimationEvent(229, function() { players[uID].armProxy.armPrepped = true; }, true);
+		var prepEventD = new BABYLON.AnimationEvent(19, function() { players[uID].armProxy.armPrepped = true; }, true);
+		var prepEventU = new BABYLON.AnimationEvent(229, function() { players[uID].armProxy.armPrepped = true; }, true);
 		
 		playerSkeleton.bones[14].animations[0].addEvent(prepEventR);
 		playerSkeleton.bones[14].animations[0].addEvent(prepEventL);
@@ -180,10 +238,10 @@ function meshSetup(){
 		playerSkeleton.bones[14].animations[0].addEvent(prepEventD);
 		
 		// 2. arm unprep
-		var unprepEventR = new BABYLON.AnimationEvent(120, function() { players[uID].armProxy.armPrepped = false; }, true);
-		var unprepEventL = new BABYLON.AnimationEvent(70, function() { players[uID].armProxy.armPrepped = false; }, true);
-		var unprepEventU = new BABYLON.AnimationEvent(20, function() { players[uID].armProxy.armPrepped = false; }, true);
-		var unprepEventD = new BABYLON.AnimationEvent(230, function() { players[uID].armProxy.armPrepped = false; }, true);
+		var unprepEventR = new BABYLON.AnimationEvent(120, function() { players[uID].armProxy.armPrepped = false; players[0].attackCheckInterval = setInterval(checkAttackIntersection,50);}, true);
+		var unprepEventL = new BABYLON.AnimationEvent(70, function() { players[uID].armProxy.armPrepped = false; players[0].attackCheckInterval = setInterval(checkAttackIntersection,50);}, true);
+		var unprepEventD = new BABYLON.AnimationEvent(20, function() { players[uID].armProxy.armPrepped = false; players[0].attackCheckInterval = setInterval(checkAttackIntersection,50);}, true);
+		var unprepEventU = new BABYLON.AnimationEvent(230, function() { players[uID].armProxy.armPrepped = false; players[0].attackCheckInterval = setInterval(checkAttackIntersection,50);}, true);
 		
 		playerSkeleton.bones[14].animations[0].addEvent(unprepEventR);
 		playerSkeleton.bones[14].animations[0].addEvent(unprepEventL);
@@ -193,8 +251,8 @@ function meshSetup(){
 		// 3. arm lock
 		var lockEventR = new BABYLON.AnimationEvent(101, function() { players[uID].armProxy.armLock = true;}, true);
 		var lockEventL = new BABYLON.AnimationEvent(51, function() { players[uID].armProxy.armLock = true; }, true);
-		var lockEventU = new BABYLON.AnimationEvent(0, function() { players[uID].armProxy.armLock = true; }, true);
-		var lockEventD = new BABYLON.AnimationEvent(211, function() { players[uID].armProxy.armLock = true; }, true);
+		var lockEventD = new BABYLON.AnimationEvent(0, function() { players[uID].armProxy.armLock = true; }, true);
+		var lockEventU = new BABYLON.AnimationEvent(211, function() { players[uID].armProxy.armLock = true; }, true);
 		
 		playerSkeleton.bones[14].animations[0].addEvent(lockEventR);
 		playerSkeleton.bones[14].animations[0].addEvent(lockEventL);
@@ -202,10 +260,10 @@ function meshSetup(){
 		playerSkeleton.bones[14].animations[0].addEvent(lockEventD);
 		
 		// 4. arm unlock
-		var unlockEventR = new BABYLON.AnimationEvent(130, function() { players[uID].armProxy.armLock = false; }, true);
-		var unlockEventL = new BABYLON.AnimationEvent(80, function() { players[uID].armProxy.armLock = false; }, true);
-		var unlockEventU = new BABYLON.AnimationEvent(30, function() { players[uID].armProxy.armLock = false; }, true);
-		var unlockEventD = new BABYLON.AnimationEvent(240, function() { players[uID].armProxy.armLock = true; }, true);
+		var unlockEventR = new BABYLON.AnimationEvent(130, function() { players[uID].armProxy.armLock = false; clearInterval(players[0].attackCheckInterval);}, true);
+		var unlockEventL = new BABYLON.AnimationEvent(80, function() { players[uID].armProxy.armLock = false; clearInterval(players[0].attackCheckInterval);}, true);
+		var unlockEventD = new BABYLON.AnimationEvent(30, function() { players[uID].armProxy.armLock = false; clearInterval(players[0].attackCheckInterval);}, true);
+		var unlockEventU = new BABYLON.AnimationEvent(240, function() { players[uID].armProxy.armLock = true; clearInterval(players[0].attackCheckInterval);}, true);
 		
 		playerSkeleton.bones[14].animations[0].addEvent(unlockEventR);
 		playerSkeleton.bones[14].animations[0].addEvent(unlockEventL);
@@ -219,7 +277,6 @@ function meshSetup(){
 	
 }
 	
-
 function movementControls(){
 	
 	// Movement Vars
@@ -264,8 +321,7 @@ function movementControls(){
 					break;
 			// A
 			case 65:
-					console.log(players[0].armProxy.armLock);
-					//moveLeft = true;
+					moveLeft = true;
 					break;
 			// D
 			case 68:
@@ -325,7 +381,6 @@ function movementControls(){
 
 }
 
-
 function attackingControls(){
 		
 		// Vars for determining attack dir
@@ -345,7 +400,7 @@ function attackingControls(){
 			whichButton(e, true);
 		});
 
-		var whichButton = function (e, mouseUp) {
+		var whichButton = function (e, isMouseUp) {
 			// Handle different event models (for IE?)
 			var e = e || window.event;
 			var btnCode;
@@ -356,7 +411,7 @@ function attackingControls(){
 				switch (btnCode) {
 					//Left Click
 					case 0:
-						if(mouseUp){
+						if(isMouseUp){
 							// Swing!
 							changeAnimation(0, "armAnimation");
 						}else{
@@ -366,13 +421,11 @@ function attackingControls(){
 						break;
 					//Middle Button Click
 					case 1:
-						//console.log('Middle button clicked.');
-						//console.log(players);
 		
 						break;
 					//Right Click
 					case 2:
-						if(mouseUp){
+						if(isMouseUp){
 							// Stop blocking
 							//changeAnimation(0, "armAnimation"); -> stop current animation
 						}else{
@@ -405,13 +458,13 @@ function attackingControls(){
 			if(xRotRatio >= yRotRatio){
 				//Right
 				if(camera.alpha < prevCamRotX){
-					console.log("Right");
+					//console.log("Right");
 					return 0;
 				}
 				//Left
 				else
 				{
-					console.log("Left");
+					//console.log("Left");
 					return 1;
 				}
 			}
@@ -420,13 +473,13 @@ function attackingControls(){
 			{
 				//Downwards
 				if(camera.beta < prevCamRotY){
-					console.log("Downwards");
+					//console.log("Downwards");
 					return 2;
 				}
 				//Upwards
 				else
 				{
-					console.log("Upwards");
+					//console.log("Upwards");
 					return 3;
 				}
 			}
@@ -481,7 +534,6 @@ function attackingControls(){
 		}
 		
 	}
-
 
 function changeAnimation(newAnimationNum, animationType){
 		
@@ -654,6 +706,10 @@ function changeAnimation(newAnimationNum, animationType){
 		
 }
 	
+function checkAttackIntersection(){
+	if(players[0].weapon.intersectsMesh(players[1], false))
+		console.log("Hit");
+}
 //Helpers
 function degToRad(degrees) {
 	return degrees * Math.PI / 180;

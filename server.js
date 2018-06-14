@@ -105,7 +105,7 @@ io.on('connection', function(socket){
 	// Each client emits this every 20ms
 	// args contains vector3 position
 	socket.on('updatePos', function(args) {
-		args.name = socket.userID;
+		args.userID = socket.userID;
 		socket.broadcast.emit('move', args);
     });
 	
