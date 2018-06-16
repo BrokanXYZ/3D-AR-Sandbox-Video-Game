@@ -658,13 +658,15 @@ function setupSocketIO(){
 	
 	socket.on('updateAnimation', function(data) {
 		
-		animationNum = data.newAnimationNum;
+		animationCode = data.animationCode;
 		animationType = data.animationType;
-		playerID = data.playerID;
+		userID = data.userID;
 		
-		console.log("update player: " + playerID);
+		console.log("update player: " + userID);
+		console.log("animation type: " + animationType);
+		console.log("code: " + animationCode);
 		
-		updatePlayerAnimation(animationNum, animationType, playerID, false)
+		updateOtherPlayersAnimation(animationCode, animationType, userID);
 	});
 	
 	
@@ -918,6 +920,7 @@ function setupPlayer(nickname){
 								
 								let startFrame = 0;
 								let endFrame = 0;
+								let animationCode = "00";
 								
 								// The current arm animation is 0, so we have to use another var to store the type of swing
 								switch(obj['prevArmAnimation']) {
@@ -925,21 +928,25 @@ function setupPlayer(nickname){
 									case 1:
 										startFrame = 230;
 										endFrame = 240;
+										animationCode = setCharAt(animationCode, 1, '1');
 										break;
 									// Down
 									case 2:
 										startFrame = 20;
 										endFrame = 30;
+										animationCode = setCharAt(animationCode, 1, '2');
 										break;
 									// Left
 									case 3:
 										startFrame = 70;
 										endFrame = 80;
+										animationCode = setCharAt(animationCode, 1, '3');
 										break;
 									// Right
 									case 4:
 										startFrame = 120;
 										endFrame = 130;
+										animationCode = setCharAt(animationCode, 1, '4');
 										break;
 								}
 								
@@ -949,6 +956,15 @@ function setupPlayer(nickname){
 								for(var x=14; x<22; x++){
 									scene.beginAnimation(players[mySocketId].skeleton.bones[x], startFrame, endFrame, false, 1.0);
 								}
+								
+								//Package animation data
+								data = {};
+								data.userID = mySocketId;
+								data.animationCode = animationCode;
+								data.animationType = "armAnimation";
+								
+								//broadcast to other players
+								socket.emit('changePlayerAnimation', data);
 							}
 							
 						}else{
@@ -1075,14 +1091,14 @@ function setupPlayer(nickname){
 				case 87:
 						if(!moveForward){
 							moveForward = true;
-							updatePlayerAnimation(1, "wholeBodyAnimation", mySocketId, true);
+							updatePlayer1Animation(1, "wholeBodyAnimation");
 						}
 						break;
 				// S
 				case 83:
 						if(!moveBack){
 							moveBack = true;
-							updatePlayerAnimation(2, "wholeBodyAnimation", mySocketId, true);
+							updatePlayer1Animation(2, "wholeBodyAnimation");
 						}
 						break;
 				// A
@@ -1102,12 +1118,12 @@ function setupPlayer(nickname){
 				// W
 				case 87:
 						moveForward = false;
-						updatePlayerAnimation(0, "wholeBodyAnimation", mySocketId, true);
+						updatePlayer1Animation(0, "wholeBodyAnimation");
 						break;
 				// S
 				case 83:
 						moveBack = false;
-						updatePlayerAnimation(0, "wholeBodyAnimation", mySocketId, true);
+						updatePlayer1Animation(0, "wholeBodyAnimation");
 						break;
 				// A
 				case 65:
@@ -1270,7 +1286,7 @@ function setupPlayer(nickname){
 					case 0:
 						if(isMouseUp){
 							// Swing!
-							updatePlayerAnimation(0, "armAnimation", mySocketId, true);
+							updatePlayer1Animation(0, "armAnimation");
 						}else{
 							attack();
 						}
@@ -1343,19 +1359,19 @@ function setupPlayer(nickname){
 			switch (movementDir) {
 					//UP
 					case 1:
-						updatePlayerAnimation(1, "armAnimation", mySocketId, true);
+						updatePlayer1Animation(1, "armAnimation");
 						break;
 					//DOWN
 					case 2:
-						updatePlayerAnimation(2, "armAnimation", mySocketId, true);
+						updatePlayer1Animation(2, "armAnimation");
 						break;
 					//LEFT
 					case 3:
-						updatePlayerAnimation(3, "armAnimation", mySocketId, true);
+						updatePlayer1Animation(3, "armAnimation");
 						break;	
 					//RIGHT
 					case 4:
-						updatePlayerAnimation(4, "armAnimation", mySocketId, true);
+						updatePlayer1Animation(4, "armAnimation");
 						break;
 
 					default:
@@ -1369,19 +1385,19 @@ function setupPlayer(nickname){
 			switch (movementDir) {
 					//UP
 					case 1:
-						updatePlayerAnimation(5, "armAnimation", mySocketId, true);
+						updatePlayer1Animation(5, "armAnimation");
 						break;
 					//DOWN
 					case 2:
-						updatePlayerAnimation(6, "armAnimation", mySocketId, true);
+						updatePlayer1Animation(6, "armAnimation");
 						break;
 					//LEFT
 					case 3:
-						updatePlayerAnimation(7, "armAnimation", mySocketId, true);
+						updatePlayer1Animation(7, "armAnimation");
 						break;	
 					//RIGHT
 					case 4:
-						updatePlayerAnimation(8, "armAnimation", mySocketId, true);
+						updatePlayer1Animation(8, "armAnimation");
 						break;
 
 					default:
@@ -1431,190 +1447,366 @@ function setupPlayer(nickname){
 
 
 //Player animation changing logic
-function updatePlayerAnimation(newAnimationNum, animationType, playerSocketId, isPlayer1){
+function updatePlayer1Animation(newAnimationNum, animationType){
 	
-		if(isPlayer1){
-			//Package data (only for player 1)
-			data = {};
-			data.playerID = playerSocketId;
-			data.newAnimationNum = newAnimationNum;
-			data.animationType = animationType;
-		}
+		//Package data to be emitted to others
+		data = {};
+		data.userID = mySocketId;
+		data.animationCode = "00";
+		data.animationType = animationType;
 		
-		// Determine type of animation & animation data
+		// Animation data to be determined
 		var startFrame = 0;
 		var endFrame = 0;
 		var loop = false;
+		
 		
 		// WHOLE BODY
 		if(animationType=="wholeBodyAnimation"){
 			// 0) Idle
 			if(newAnimationNum==0){
-				players[playerSocketId].curBodyAnimation = 0;
+				players[mySocketId].curBodyAnimation = 0;
 				startFrame = 261;
 				endFrame = 360;
 				loop = true;
+				data.animationCode = setCharAt(data.animationCode, 0, '0');
 				
 			// 1) Run
 			}else if(newAnimationNum==1){
-				players[playerSocketId].curBodyAnimation = 1;
+				players[mySocketId].curBodyAnimation = 1;
 				startFrame = 175;
 				endFrame = 199;	
 				loop = true;				
+				data.animationCode = setCharAt(data.animationCode, 0, '1');
 				
 			// 2) Back peddle
 			}else if(newAnimationNum==2){
-				players[playerSocketId].curBodyAnimation = 2;
+				players[mySocketId].curBodyAnimation = 2;
 				startFrame = 199;
 				endFrame = 175;
 				loop = true;
+				data.animationCode = setCharAt(data.animationCode, 0, '2');
 			}
 			
 			// Execute full animation
 			
 			//If arms are currently acting... leave them alone
-			if(players[playerSocketId].armProxy.armLock){
+			if(players[mySocketId].armProxy.armLock){
+				
+				data.animationCode = setCharAt(data.animationCode, 1, '1');
+				
 				for(var x=0; x<14; x++){
-					scene.beginAnimation(players[playerSocketId].skeleton.bones[x], startFrame, endFrame, loop);
+					scene.beginAnimation(players[mySocketId].skeleton.bones[x], startFrame, endFrame, loop);
 				}
 				for(var x=23; x<43; x++){
-					scene.beginAnimation(players[playerSocketId].skeleton.bones[x], startFrame, endFrame, loop);
+					scene.beginAnimation(players[mySocketId].skeleton.bones[x], startFrame, endFrame, loop);
 				}
 			//Else include all bones
 			}else{
+				
+				data.animationCode = setCharAt(data.animationCode, 1, '0');
+				
 				//Cycle Arm animations (loop)
 				for(var x=14; x<23; x++){
-					playerSkeleton.bones[x].animations[0].loopMode = BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE;
+					players[mySocketId].skeleton.bones[x].animations[0].loopMode = BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE;
 				}
-				scene.beginAnimation(players[playerSocketId].skeleton, startFrame, endFrame, loop);
+				scene.beginAnimation(players[mySocketId].skeleton, startFrame, endFrame, loop);
 			}
+			console.log("armCycle");
 			
 		// ARM(s) ONLY
 		}else if(animationType=="armAnimation"){
 			
-			//Override arm animations (so that they pause at the final frame)
+			console.log("armConstant");
+			
+			//Override loopMode for arm animations (so that they pause at the final frame)
 			for(var x=14; x<23; x++){
-				playerSkeleton.bones[x].animations[0].loopMode = BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT;
+				players[mySocketId].skeleton.bones[x].animations[0].loopMode = BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT;
 			}
 			
 			// 0) Swing/Null
 			if(newAnimationNum==0){
 				
-				switch(players[playerSocketId].curArmAnimation) {
+				switch(players[mySocketId].curArmAnimation) {
 					// Up
 					case 1:
 						startFrame = 230;
 						endFrame = 240;
+						data.animationCode = setCharAt(data.animationCode, 1, '1');
 						break;
 					// Down
 					case 2:
 						startFrame = 20;
 						endFrame = 30;
+						data.animationCode = setCharAt(data.animationCode, 1, '2');
 						break;
 					// Left
 					case 3:
 						startFrame = 70;
 						endFrame = 80;
+						data.animationCode = setCharAt(data.animationCode, 1, '3');
 						break;
 					// Right
 					case 4:
 						startFrame = 120;
 						endFrame = 130;
+						data.animationCode = setCharAt(data.animationCode, 1, '4');
 						break;
 				}
 				
 				// Only execute animation if arm is prepped. 
 				// Otherwise the animation will be deferred to the arm proxy handler.
-				if(players[playerSocketId].armProxy.armPrepped){
+				if(players[mySocketId].armProxy.armPrepped){
 					for(var x=14; x<22; x++){
-						scene.beginAnimation(players[playerSocketId].skeleton.bones[x], startFrame, endFrame, false, 1.0);
+						scene.beginAnimation(players[mySocketId].skeleton.bones[x], startFrame, endFrame, false, 1.0);
 					}
 					
 					//broadcast to other players
-					if(isPlayer1){
-						socket.emit('changePlayerAnimation', data);
-					}
+					socket.emit('changePlayerAnimation', data);
+					
 				}else{
 					// The current arm animation is 0, so we have to use another var to store the type of swing
-					players[playerSocketId].armProxy.prevArmAnimation = players[playerSocketId].curArmAnimation;
+					players[mySocketId].armProxy.prevArmAnimation = players[mySocketId].curArmAnimation;
 					
 				}
 				
-				players[playerSocketId].curArmAnimation = 0;
+				players[mySocketId].curArmAnimation = 0;
 			
 				// Animation execution logic is within here, so we are done
 				return;
 			
 			// 1) Up Attack
 			}else if(newAnimationNum==1){
-				players[playerSocketId].curArmAnimation = 1;
+				players[mySocketId].curArmAnimation = 1;
 				startFrame = 211;
 				endFrame = 230;
-				
+				data.animationCode = setCharAt(data.animationCode, 0, '1');
 				loop = true;
 				
 			// 2) Down Attack
 			}else if(newAnimationNum==2){
-				players[playerSocketId].curArmAnimation = 2;
+				players[mySocketId].curArmAnimation = 2;
 				startFrame = 0;
 				endFrame = 20;
-				
+				data.animationCode = setCharAt(data.animationCode, 0, '2');
 				loop = true;
 				
 			// 3) Left Attack
 			}else if(newAnimationNum==3){
-				players[playerSocketId].curArmAnimation = 3;
+				players[mySocketId].curArmAnimation = 3;
 				startFrame = 51;
 				endFrame = 70;
+				data.animationCode = setCharAt(data.animationCode, 0, '3');
 				loop = true;
 				
 			// 4) Right Attack
 			}else if(newAnimationNum==4){
-				players[playerSocketId].curArmAnimation = 4;
+				players[mySocketId].curArmAnimation = 4;
 				startFrame = 101;
 				endFrame = 120;
+				data.animationCode = setCharAt(data.animationCode, 0, '4');
 				loop = true;
 				
 			// 5) Up Block
 			}else if(newAnimationNum==5){
-				players[playerSocketId].curArmAnimation = 5;
+				players[mySocketId].curArmAnimation = 5;
 				startFrame = 251;
 				endFrame = 255;
+				data.animationCode = setCharAt(data.animationCode, 0, '5');
 				loop = true;
 				
 			// 6) Down Block
 			}else if(newAnimationNum==6){
-				players[playerSocketId].curArmAnimation = 6;
+				players[mySocketId].curArmAnimation = 6;
 				startFrame = 41;
 				endFrame = 45;
+				data.animationCode = setCharAt(data.animationCode, 0, '6');
 				loop = true;
 				
 			// 7) Left Block
 			}else if(newAnimationNum==7){
-				players[playerSocketId].curArmAnimation = 7;
+				players[mySocketId].curArmAnimation = 7;
 				startFrame = 91;
 				endFrame = 95;
+				data.animationCode = setCharAt(data.animationCode, 0, '7');
 				loop = true;
 				
 			// 8) Right Block
 			}else if(newAnimationNum==8){
-				players[playerSocketId].curArmAnimation = 8;
+				players[mySocketId].curArmAnimation = 8;
 				startFrame = 141;
 				endFrame = 145;
+				data.animationCode = setCharAt(data.animationCode, 0, '8');
 				loop = true;
 			}
 			
 			// Execute arm animation
 			for(var x=14; x<22; x++){
-					scene.beginAnimation(players[playerSocketId].skeleton.bones[x], startFrame, endFrame, loop, 1.0)
+					scene.beginAnimation(players[mySocketId].skeleton.bones[x], startFrame, endFrame, loop, 1.0)
 			}
 			
 		}
 		
 		//broadcast to other players
-		if(isPlayer1){
-			socket.emit('changePlayerAnimation', data);
+		socket.emit('changePlayerAnimation', data);
+		
+	
+}
+
+function updateOtherPlayersAnimation(animationCode, animationType, userID){
+	
+	// Animation data to be determined
+	var startFrame = 0;
+	var endFrame = 0;
+	var loop = false;
+	
+	
+	// WHOLE BODY
+	if(animationType=="wholeBodyAnimation"){
+		
+		// 0) Idle
+		if(animationCode[0]=='0'){
+			players[userID].curBodyAnimation = 0;
+			startFrame = 261;
+			endFrame = 360;
+			loop = true;
+			
+		// 1) Run
+		}else if(animationCode[0]=='1'){
+			players[userID].curBodyAnimation = 1;
+			startFrame = 175;
+			endFrame = 199;	
+			loop = true;				
+			
+		// 2) Back peddle
+		}else if(animationCode[0]=='2'){
+			players[userID].curBodyAnimation = 2;
+			startFrame = 199;
+			endFrame = 175;
+			loop = true;
 		}
+		
+		// Execute full animation
+		
+		//If arms are currently acting... leave them alone
+		if(animationCode[1]=='1'){
+			for(var x=0; x<14; x++){
+				scene.beginAnimation(players[userID].skeleton.bones[x], startFrame, endFrame, loop);
+			}
+			for(var x=23; x<43; x++){
+				scene.beginAnimation(players[userID].skeleton.bones[x], startFrame, endFrame, loop);
+			}
+		//Else include all bones
+		}else{
+			//Cycle Arm animations (loop)
+			for(var x=14; x<23; x++){
+				players[userID].skeleton.bones[x].animations[0].loopMode = BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE;
+			}
+			scene.beginAnimation(players[userID].skeleton, startFrame, endFrame, loop);
+		}
+		
+	// ARM(s) ONLY
+	}else if(animationType=="armAnimation"){
+		
+		//Override loopMode for arm animations (so that they pause at the final frame)
+		for(var x=14; x<23; x++){
+			players[userID].skeleton.bones[x].animations[0].loopMode = BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT;
+		}
+		
+		// 0) Swing/Null
+		if(animationCode[0]=='0'){
+			
+			switch(animationCode[1]) {
+				// Up
+				case '1':
+					startFrame = 230;
+					endFrame = 240;
+					break;
+				// Down
+				case '2':
+					startFrame = 20;
+					endFrame = 30;
+					break;
+				// Left
+				case '3':
+					startFrame = 70;
+					endFrame = 80;
+					break;
+				// Right
+				case '4':
+					startFrame = 120;
+					endFrame = 130;
+					break;
+			}
+			
+			loop = false;
+			players[userID].curArmAnimation = 0;
+		
+		// 1) Up Attack
+		}else if(animationCode[0]=='1'){
+			players[userID].curArmAnimation = 1;
+			startFrame = 211;
+			endFrame = 230;
+			
+			loop = true;
+			
+		// 2) Down Attack
+		}else if(animationCode[0]=='2'){
+			players[userID].curArmAnimation = 2;
+			startFrame = 0;
+			endFrame = 20;
+			
+			loop = true;
+			
+		// 3) Left Attack
+		}else if(animationCode[0]=='3'){
+			players[userID].curArmAnimation = 3;
+			startFrame = 51;
+			endFrame = 70;
+			loop = true;
+			
+		// 4) Right Attack
+		}else if(animationCode[0]=='4'){
+			players[userID].curArmAnimation = 4;
+			startFrame = 101;
+			endFrame = 120;
+			loop = true;
+			
+		// 5) Up Block
+		}else if(animationCode[0]=='5'){
+			players[userID].curArmAnimation = 5;
+			startFrame = 251;
+			endFrame = 255;
+			loop = true;
+			
+		// 6) Down Block
+		}else if(animationCode[0]=='6'){
+			players[userID].curArmAnimation = 6;
+			startFrame = 41;
+			endFrame = 45;
+			loop = true;
+			
+		// 7) Left Block
+		}else if(animationCode[0]=='7'){
+			players[userID].curArmAnimation = 7;
+			startFrame = 91;
+			endFrame = 95;
+			loop = true;
+			
+		// 8) Right Block
+		}else if(animationCode[0]=='8'){
+			players[userID].curArmAnimation = 8;
+			startFrame = 141;
+			endFrame = 145;
+			loop = true;
+		}
+		
+		// Execute arm animation
+		for(var x=14; x<22; x++){
+				scene.beginAnimation(players[userID].skeleton.bones[x], startFrame, endFrame, loop, 1.0)
+		}
+		
+	}
 	
 }
 
@@ -1752,7 +1944,10 @@ function deathParticles(location){
 function randomNumber(min,max){
 	return Math.random() * (max-min)+min;
 }
-
+function setCharAt(targetString, index, setChar) {
+	console.log(targetString);
+    return targetString.substr(0, index) + setChar+ targetString.substr(index + setChar.length);
+}
 
 //Entry point
 document.addEventListener("DOMContentLoaded", function() {
