@@ -31,14 +31,53 @@ function initializeBabylon(){
 		engine.resize();
 	});
 	
-	// On click event, request pointer lock
+	/*// On click event, request pointer lock
 	canvas.addEventListener("click", function (evt) {
 		canvas.requestPointerLock = canvas.requestPointerLock || canvas.msRequestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock;
 		if (canvas.requestPointerLock) {
 			canvas.requestPointerLock();
 		}
-	});
+	});*/
 	
+}
+
+function polygonTest(){
+	
+	camera = new BABYLON.ArcRotateCamera("camera", -2, Math.PI/2, 5, new BABYLON.Vector3(0, 1, -0.5), scene);
+	camera.attachControl(canvas, true);
+	camera.wheelDeltaPercentage = 0.01;
+	var light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), scene);
+	
+	
+	///////  Polygon Defs!  ///////
+	var polySlopePoints = [new BABYLON.Vector2(0, 0),
+	new BABYLON.Vector2(0, 24),
+	new BABYLON.Vector2(13, 24),
+	new BABYLON.Vector2(13, 0)
+	];
+
+	var polySquarePoints = [new BABYLON.Vector2(0, 0),
+	new BABYLON.Vector2(0, 13),
+	new BABYLON.Vector2(13, 13),
+	new BABYLON.Vector2(13, 0)
+	];
+
+	var polySlopeSidePoints = [new BABYLON.Vector2(0, 0),
+	new BABYLON.Vector2(58.8, 0),
+	new BABYLON.Vector2(35.9, 7),
+	new BABYLON.Vector2(22.9, 7)
+	];
+
+	var polyBridgePoints = [new BABYLON.Vector2(0, 0),
+	new BABYLON.Vector2(74, 0),
+	new BABYLON.Vector2(74, 9),
+	new BABYLON.Vector2(0, 9)
+	];
+
+	var polySlope = new BABYLON.PolygonMeshBuilder("polySlope", polySlopePoints, scene);
+	var polySquare = new BABYLON.PolygonMeshBuilder("polySquare", polySquarePoints, scene);
+	var polySlopeSide = new BABYLON.PolygonMeshBuilder("polySlopeSide", polySlopeSidePoints, scene);
+	var polyBridge = new BABYLON.PolygonMeshBuilder("polyBridge", polyBridgePoints, scene);
 }
 		
 function createScene(){
@@ -722,8 +761,9 @@ function randomNumber(min,max){
 //Entry point
 document.addEventListener("DOMContentLoaded", function() {
 	initializeBabylon();
-    createScene();
-	meshSetup();
-	movementControls();
-	attackingControls();
+    //createScene();
+	//meshSetup();
+	//movementControls();
+	//attackingControls();
+	polygonTest();
 });
