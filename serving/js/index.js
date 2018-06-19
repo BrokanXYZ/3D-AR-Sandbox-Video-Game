@@ -542,7 +542,8 @@ function createWorld(){
 			}
 		}
 		
-		createClouds();
+		// After upgrade to babylon 3.3 most of the cloud types are not correctly working...
+		//createClouds();
 	
 }
 
@@ -985,9 +986,9 @@ function setupPlayer(nickname){
 			// Set animation events
 
 			// 1. arm prep
-			var prepEventR = new BABYLON.AnimationEvent(119, function() { players[mySocketId].armProxy.armPrepped = true;}, false);
-			var prepEventL = new BABYLON.AnimationEvent(69, function() { players[mySocketId].armProxy.armPrepped = true;}, false);
-			var prepEventD = new BABYLON.AnimationEvent(19, function() { players[mySocketId].armProxy.armPrepped = true;}, false);
+			var prepEventR = new BABYLON.AnimationEvent(119, function() { players[mySocketId].armProxy.armPrepped = true;}, true);
+			var prepEventL = new BABYLON.AnimationEvent(69, function() { players[mySocketId].armProxy.armPrepped = true;}, true);
+			var prepEventD = new BABYLON.AnimationEvent(19, function() { players[mySocketId].armProxy.armPrepped = true;}, true);
 			var prepEventU = new BABYLON.AnimationEvent(229, function() { players[mySocketId].armProxy.armPrepped = true; }, true);
 			
 			playerSkeleton.bones[14].animations[0].addEvent(prepEventR);
@@ -996,20 +997,20 @@ function setupPlayer(nickname){
 			playerSkeleton.bones[14].animations[0].addEvent(prepEventD);
 			
 			// 2. arm unprep
-			//var unprepEventR = new BABYLON.AnimationEvent(120, function() { players[mySocketId].armProxy.armPrepped = false; players[mySocketId].attackCheckInterval = setInterval(checkAttackIntersection,50);}, false);
-			//var unprepEventL = new BABYLON.AnimationEvent(70, function() { players[mySocketId].armProxy.armPrepped = false; players[mySocketId].attackCheckInterval = setInterval(checkAttackIntersection,50);}, false);
-			//var unprepEventD = new BABYLON.AnimationEvent(20, function() { players[mySocketId].armProxy.armPrepped = false; players[mySocketId].attackCheckInterval = setInterval(checkAttackIntersection,50);}, false);
+			var unprepEventR = new BABYLON.AnimationEvent(120, function() { players[mySocketId].armProxy.armPrepped = false; players[mySocketId].attackCheckInterval = setInterval(checkAttackIntersection,50);}, true);
+			var unprepEventL = new BABYLON.AnimationEvent(70, function() { players[mySocketId].armProxy.armPrepped = false; players[mySocketId].attackCheckInterval = setInterval(checkAttackIntersection,50);}, true);
+			var unprepEventD = new BABYLON.AnimationEvent(20, function() { players[mySocketId].armProxy.armPrepped = false; players[mySocketId].attackCheckInterval = setInterval(checkAttackIntersection,50);}, true);
 			var unprepEventU = new BABYLON.AnimationEvent(230, function() { players[mySocketId].armProxy.armPrepped = false; players[mySocketId].attackCheckInterval = setInterval(checkAttackIntersection,50);}, true);
 			
-			//playerSkeleton.bones[14].animations[0].addEvent(unprepEventR);
-			//playerSkeleton.bones[14].animations[0].addEvent(unprepEventL);
-			//playerSkeleton.bones[14].animations[0].addEvent(unprepEventD);
+			playerSkeleton.bones[14].animations[0].addEvent(unprepEventR);
+			playerSkeleton.bones[14].animations[0].addEvent(unprepEventL);
+			playerSkeleton.bones[14].animations[0].addEvent(unprepEventD);
 			playerSkeleton.bones[14].animations[0].addEvent(unprepEventU);
 			
 			// 3. arm lock
-			var lockEventR = new BABYLON.AnimationEvent(101, function() { players[mySocketId].armProxy.armLock = true;}, false);
-			var lockEventL = new BABYLON.AnimationEvent(51, function() { players[mySocketId].armProxy.armLock = true; }, false);
-			var lockEventD = new BABYLON.AnimationEvent(0, function() { players[mySocketId].armProxy.armLock = true; }, false);
+			var lockEventR = new BABYLON.AnimationEvent(101, function() { players[mySocketId].armProxy.armLock = true;}, true);
+			var lockEventL = new BABYLON.AnimationEvent(51, function() { players[mySocketId].armProxy.armLock = true; }, true);
+			var lockEventD = new BABYLON.AnimationEvent(0, function() { players[mySocketId].armProxy.armLock = true; }, true);
 			var lockEventU = new BABYLON.AnimationEvent(211, function() { players[mySocketId].armProxy.armLock = true; }, true);
 			
 			playerSkeleton.bones[14].animations[0].addEvent(lockEventR);
@@ -1018,10 +1019,10 @@ function setupPlayer(nickname){
 			playerSkeleton.bones[14].animations[0].addEvent(lockEventD);
 			
 			// 4. arm unlock
-			var unlockEventR = new BABYLON.AnimationEvent(130, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval);}, false);
-			var unlockEventL = new BABYLON.AnimationEvent(80, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval);}, false);
-			var unlockEventD = new BABYLON.AnimationEvent(30, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval);}, false);
-			var unlockEventU = new BABYLON.AnimationEvent(240, function() { players[mySocketId].armProxy.armLock = true; clearInterval(players[mySocketId].attackCheckInterval);}, true);
+			var unlockEventR = new BABYLON.AnimationEvent(130, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval);}, true);
+			var unlockEventL = new BABYLON.AnimationEvent(80, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval);}, true);
+			var unlockEventD = new BABYLON.AnimationEvent(30, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval);}, true);
+			var unlockEventU = new BABYLON.AnimationEvent(240, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval);}, true);
 			
 			playerSkeleton.bones[14].animations[0].addEvent(unlockEventR);
 			playerSkeleton.bones[14].animations[0].addEvent(unlockEventL);
@@ -1281,10 +1282,12 @@ function setupPlayer(nickname){
 				switch (btnCode) {
 					//Left Click
 					case 0:
-						if(isMouseUp){
+						// If mouse is up and the player has not already swung
+						if(isMouseUp && players[mySocketId].curArmAnimation != 0){
 							// Swing!
 							updatePlayer1Animation(0, "armAnimation");
-						}else{
+						// If the player's arm is not already locked
+						}else if(!players[mySocketId].armProxy.armLock){
 							attack();
 						}
 						break;
@@ -1377,6 +1380,10 @@ function setupPlayer(nickname){
 		}
 		
 		function block(){
+			
+			// Unlock arm
+			players[mySocketId].armProxy.armLock = false;
+			
 			var movementDir = getDirection();
 			
 			switch (movementDir) {
@@ -1437,15 +1444,16 @@ function setupPlayer(nickname){
 	}
 	
 	function checkAttackIntersection(){
-		console.log("test");
 		
-		/*for(var x=0; x<activeClients.length; x++){
+		console.log("checking for intersections");
+		
+		for(var x=0; x<activeClients.length; x++){
 			if(activeClients[0][x][0]!=mySocketId){
-				if(players[mySocketId].weapon.intersectsMesh(players[activeClients[0][x][0]], false)){
+				if(players[mySocketId].weapon.intersectsMesh(players[activeClients[0][x][0]].characterMesh, false)){
 					console.log(mySocketId + " hit " + activeClients[0][x][0]);
 				}
 			}
-		}*/
+		}
 		
 		
 		
