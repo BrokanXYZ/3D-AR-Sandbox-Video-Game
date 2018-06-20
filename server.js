@@ -122,6 +122,26 @@ io.on('connection', function(socket){
     });
 	
 	
+	
+	
+	
+	
+	
+	socket.on('playerHit', function(data) {
+		
+		// Tell player that they have been successfully hit
+		//console.log(data.uID + " has been hit!");
+		//console.log(socket.id);
+		socket.broadcast.emit('updateHealth');
+		
+    });
+	
+	
+	
+	
+	
+	
+	
 	//Called when client disconnects
 	socket.on('disconnect', function(){
 		console.log('-- User ' + socket.userID + ' disconnected (' + socket.userIP + ')');

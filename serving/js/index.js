@@ -26,6 +26,17 @@ var camera;
 // No gravity on these! So, that player doesn't slide
 var unevenMeshes = [];
 
+
+
+
+
+var hpBar;
+
+
+
+
+
+
 function initializeBabylon(){
 	canvas = document.getElementById("gameCanvas");
 	engine = new BABYLON.Engine(canvas, true);
@@ -668,6 +679,28 @@ function setupSocketIO(){
 	});
 	
 	
+	socket.on('updateHealth', function() {
+		
+		console.log("it works");
+		
+		switch(hpBar.width){
+			case "400px":
+				hpBar.width = "300px";
+				break;
+			case "300px":
+				hpBar.width = "200px";
+				break;
+			case "200px":
+				hpBar.width = "100px";
+				break;
+			case "100px":
+				hpBar.width = "400px";
+				break;
+		}
+		
+	});
+	
+	
 	function createAnotherPlayer(uID, uColor){
 		BABYLON.SceneLoader.ImportMesh("", "/serving/meshes/", "player.babylon", scene, function (newMeshes, particleSystems, skeletons) {
 		
@@ -753,10 +786,10 @@ function setupGUI(){
 	noHpBar.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
 	noHpBar.top = -15;
 	noHpBar.left = -15;
-	//advancedTexture.addControl(noHpBar);    
+	advancedTexture.addControl(noHpBar);    
 
-	var hpBar = new BABYLON.GUI.Rectangle();
-	hpBar.width = "200px";	////////////	  *Player's health*
+	hpBar = new BABYLON.GUI.Rectangle();
+	hpBar.width = "400px";	////////////	  *Player's health*
 	hpBar.height = "50px";
 	hpBar.color = "Green";
 	hpBar.background = "Green";
@@ -765,7 +798,8 @@ function setupGUI(){
 	hpBar.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
 	hpBar.top = -15;
 	hpBar.left = -15;
-	//advancedTexture.addControl(hpBar);
+	advancedTexture.addControl(hpBar);
+	
 }
 
 function setupPlayer(nickname){
@@ -902,7 +936,8 @@ function setupPlayer(nickname){
 			players[mySocketId].weapon = swordMesh;
 			players[mySocketId].curBodyAnimation = 0;
 			players[mySocketId].curArmAnimation = 0;
-			//players[mySocketId].attackCheckInterval;
+			players[mySocketId].attackCheckInterval;
+			players[mySocketId].playerHit = false;
 			
 			
 			// Setup arm proxy handler (setting events for 'armPrepped', 'armLock', and 'prevArmAnimation')
@@ -1019,10 +1054,10 @@ function setupPlayer(nickname){
 			playerSkeleton.bones[14].animations[0].addEvent(lockEventD);
 			
 			// 4. arm unlock
-			var unlockEventR = new BABYLON.AnimationEvent(130, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval);}, true);
-			var unlockEventL = new BABYLON.AnimationEvent(80, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval);}, true);
-			var unlockEventD = new BABYLON.AnimationEvent(30, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval);}, true);
-			var unlockEventU = new BABYLON.AnimationEvent(240, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval);}, true);
+			var unlockEventR = new BABYLON.AnimationEvent(130, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval); players[mySocketId].playerHit = false;}, true);
+			var unlockEventL = new BABYLON.AnimationEvent(80, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval); players[mySocketId].playerHit = false;}, true);
+			var unlockEventD = new BABYLON.AnimationEvent(30, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval); players[mySocketId].playerHit = false;}, true);
+			var unlockEventU = new BABYLON.AnimationEvent(240, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval); players[mySocketId].playerHit = false;}, true);
 			
 			playerSkeleton.bones[14].animations[0].addEvent(unlockEventR);
 			playerSkeleton.bones[14].animations[0].addEvent(unlockEventL);
@@ -1300,8 +1335,10 @@ function setupPlayer(nickname){
 					//Right Click
 					case 2:
 						if(isMouseUp){
-							// Stop blocking
-							//changeAnimation(0, "armAnimation"); -> stop current animation
+							// Unlock arm
+							players[mySocketId].armProxy.armLock = false;
+							//Stop blocking
+							updatePlayer1Animation(0, "armAnimation");
 						}else{
 							block();
 						}
@@ -1381,8 +1418,13 @@ function setupPlayer(nickname){
 		
 		function block(){
 			
-			// Unlock arm
-			players[mySocketId].armProxy.armLock = false;
+			// Cancel attack check interval if it exists
+			if(players[mySocketId].attackCheckInterval){
+				clearInterval(players[mySocketId].attackCheckInterval);
+			}
+			
+			// Lock arm
+			players[mySocketId].armProxy.armLock = true;
 			
 			var movementDir = getDirection();
 			
@@ -1444,20 +1486,29 @@ function setupPlayer(nickname){
 	}
 	
 	function checkAttackIntersection(){
-		
-		console.log("checking for intersections");
-		
-		for(var x=0; x<activeClients.length; x++){
-			if(activeClients[0][x][0]!=mySocketId){
+		for(var x=0; x<activeClients[0].length; x++){
+			if(!players[mySocketId].playerHit && activeClients[0][x][0]!=mySocketId){
 				if(players[mySocketId].weapon.intersectsMesh(players[activeClients[0][x][0]].characterMesh, false)){
-					console.log(mySocketId + " hit " + activeClients[0][x][0]);
+					
+					
+					// Was the player blocking correctly?
+					if(players[mySocketId].armProxy.prevArmAnimation + 4 != players[activeClients[0][x][0]].curArmAnimation){
+						
+						console.log(mySocketId + " hit " + activeClients[0][x][0]);
+						players[mySocketId].playerHit = true;
+						
+						// Tell server player 1 hit another player
+						let data = {};
+						data.uID = activeClients[0][x][0];
+						
+						socket.emit('playerHit', data);						
+						
+					}
+					
+					
 				}
 			}
 		}
-		
-		
-		
-		
 	}
 }
 
@@ -1534,58 +1585,87 @@ function updatePlayer1Animation(newAnimationNum, animationType){
 		}else if(animationType=="armAnimation"){
 			
 			console.log("armConstant");
+			let stopBlock = false;
 			
 			//Override loopMode for arm animations (so that they pause at the final frame)
 			for(var x=14; x<23; x++){
 				players[mySocketId].skeleton.bones[x].animations[0].loopMode = BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT;
 			}
 			
-			// 0) Swing/Null
+			// 0) Swing/StopBlocking/Null
 			if(newAnimationNum==0){
 				
 				switch(players[mySocketId].curArmAnimation) {
-					// Up
+					// Up Swing
 					case 1:
 						startFrame = 230;
 						endFrame = 240;
 						data.animationCode = setCharAt(data.animationCode, 1, '1');
 						break;
-					// Down
+					// Down Swing
 					case 2:
 						startFrame = 20;
 						endFrame = 30;
 						data.animationCode = setCharAt(data.animationCode, 1, '2');
 						break;
-					// Left
+					// Left Swing
 					case 3:
 						startFrame = 70;
 						endFrame = 80;
 						data.animationCode = setCharAt(data.animationCode, 1, '3');
 						break;
-					// Right
+					// Right Swing
 					case 4:
 						startFrame = 120;
 						endFrame = 130;
 						data.animationCode = setCharAt(data.animationCode, 1, '4');
 						break;
+					// Up Block Stop
+					case 5:
+						startFrame = 255;
+						endFrame = 255;
+						data.animationCode = setCharAt(data.animationCode, 1, '5');
+						stopBlock = true;
+						break;
+					// Down Block Stop
+					case 6:
+						startFrame = 45;
+						endFrame = 45;
+						data.animationCode = setCharAt(data.animationCode, 1, '6');
+						stopBlock = true;
+						break;
+					// Left Block Stop
+					case 7:
+						startFrame = 95;
+						endFrame = 95;
+						data.animationCode = setCharAt(data.animationCode, 1, '7');
+						stopBlock = true;
+						break;
+					// Right Block Stop
+					case 8:
+						startFrame = 145;
+						endFrame = 145;
+						data.animationCode = setCharAt(data.animationCode, 1, '8');
+						stopBlock = true;
+						break;
 				}
 				
 				// Only execute animation if arm is prepped. 
 				// Otherwise the animation will be deferred to the arm proxy handler.
-				if(players[mySocketId].armProxy.armPrepped){
+				if(players[mySocketId].armProxy.armPrepped || stopBlock){
 					for(var x=14; x<22; x++){
 						scene.beginAnimation(players[mySocketId].skeleton.bones[x], startFrame, endFrame, false, 1.0);
 					}
 					
 					//broadcast to other players
 					socket.emit('changePlayerAnimation', data);
-					
-				}else{
-					// The current arm animation is 0, so we have to use another var to store the type of swing
-					players[mySocketId].armProxy.prevArmAnimation = players[mySocketId].curArmAnimation;
-					
 				}
 				
+				// The current arm animation is 0, so we have to use another var to store the type of swing
+				// used for arm proxy animation execution and determining attack type after a player is hit
+				players[mySocketId].armProxy.prevArmAnimation = players[mySocketId].curArmAnimation;
+					
+
 				players[mySocketId].curArmAnimation = 0;
 			
 				// Animation execution logic is within here, so we are done
@@ -1733,25 +1813,45 @@ function updateOtherPlayersAnimation(animationCode, animationType, userID){
 		if(animationCode[0]=='0'){
 			
 			switch(animationCode[1]) {
-				// Up
+				// Up Swing
 				case '1':
 					startFrame = 230;
 					endFrame = 240;
 					break;
-				// Down
+				// Down Swing
 				case '2':
 					startFrame = 20;
 					endFrame = 30;
 					break;
-				// Left
+				// Left Swing
 				case '3':
 					startFrame = 70;
 					endFrame = 80;
 					break;
-				// Right
+				// Right Swing
 				case '4':
 					startFrame = 120;
 					endFrame = 130;
+					break;
+				// Up Block Stop
+				case '5':
+					startFrame = 255;
+					endFrame = 255;
+					break;
+				// Down Block Stop
+				case '6':
+					startFrame = 45;
+					endFrame = 45;
+					break;
+				// Left Block Stop
+				case '7':
+					startFrame = 95;
+					endFrame = 95;
+					break;
+				// Right Block Stop
+				case '8':
+					startFrame = 145;
+					endFrame = 145;
 					break;
 			}
 			
