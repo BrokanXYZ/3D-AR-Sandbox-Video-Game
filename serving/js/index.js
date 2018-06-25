@@ -20,20 +20,13 @@ var canvas;
 var engine; 
 var scene; 
 
-//Main player's camera
+//P1's vars
 var camera;
+var hpBar;
+var playerSpeed = 1;
 
 // No gravity on these! So, that player doesn't slide
 var unevenMeshes = [];
-
-
-
-
-
-var hpBar;
-
-
-
 
 
 
@@ -48,6 +41,11 @@ function initializeBabylon(){
 	//Resize window
 	window.addEventListener("resize", function () {
 		engine.resize();
+	});
+	
+	// Render scene
+	engine.runRenderLoop(function () {
+		scene.render();
 	});
 }
 		
@@ -560,11 +558,6 @@ function createWorld(){
 
 function setupSpectator(){
 	camera = new BABYLON.ArcRotateCamera("myCamera", 4, 1.6, 275, new BABYLON.Vector3(0, 60, 0), scene);
-	
-	// Render scene
-	engine.runRenderLoop(function () {
-		scene.render();
-	});
 	
 	// Rotate camera
 	engine.runRenderLoop(function () {
@@ -1095,7 +1088,6 @@ function setupPlayer(nickname){
 	function movementControls(){
 		
 		// Movement Vars
-		var playerSpeed = 1;
 		var gravity = -0.2;
 		
 		var moveForward = false;
@@ -1240,26 +1232,38 @@ function setupPlayer(nickname){
 			// Player movement per frame
 			var xMovement = 0;
 			var zMovement = 0;
+			var buttonsPressed = 0;
+			var animRatio = scene.getAnimationRatio();
 			
 			// Calculate player's movement (WASD)
 			if(moveForward){
 				xMovement += Math.sin(camera.rotation.y)*(playerSpeed*0.15);
 				zMovement += Math.cos(camera.rotation.y)*(playerSpeed*0.15);
+				buttonsPressed++;
 			}
 			
 			if(moveBack){
 				xMovement -= Math.sin(camera.rotation.y)*(playerSpeed*0.15);
 				zMovement -= Math.cos(camera.rotation.y)*(playerSpeed*0.15);
+				buttonsPressed++;
 			}
 			
 			if(moveLeft){
 				zMovement += Math.sin(camera.rotation.y)*(playerSpeed*0.15);
 				xMovement -= Math.cos(camera.rotation.y)*(playerSpeed*0.15);
+				buttonsPressed++;
 			}	
 
 			if(moveRight){
 				zMovement -= Math.sin(camera.rotation.y)*(playerSpeed*0.15);
 				xMovement += Math.cos(camera.rotation.y)*(playerSpeed*0.15);
+				buttonsPressed++;
+			}
+			
+			// If 2 buttons are pressed (e.g. diagonal movement) half the player's speed
+			if(buttonsPressed==2){
+				xMovement *=0.5;
+				zMovement *=0.5;
 			}
 			
 			// Cast ray to check player's surface
@@ -1268,12 +1272,12 @@ function setupPlayer(nickname){
 			// Make the move!
 			if(onUnevenSurface.hit){
 				// Without gravity
-				players[mySocketId].trackingBox.moveWithCollisions(new BABYLON.Vector3(xMovement, 0, zMovement));
+				players[mySocketId].trackingBox.moveWithCollisions(new BABYLON.Vector3(xMovement*animRatio, 0, zMovement*animRatio));
 				// Adjust y position so that player smoothly traverses
 				players[mySocketId].trackingBox.position.y = nextPosOnUnevenMesh();
 			}else{
 				// With gravity
-				players[mySocketId].trackingBox.moveWithCollisions(new BABYLON.Vector3(xMovement, gravity, zMovement));
+				players[mySocketId].trackingBox.moveWithCollisions(new BABYLON.Vector3(xMovement*animRatio, gravity, zMovement*animRatio));
 			}
 			
 			// Camera will follow player's tracking box
