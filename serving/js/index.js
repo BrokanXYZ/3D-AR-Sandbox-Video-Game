@@ -24,9 +24,17 @@ var scene;
 var camera;
 var hpBar;
 var playerSpeed = 1;
+//		**		var attackSpeed = 1;
+var spectatorCameraRotate;
+var moveForward = false;
+var moveBack = false;
+var moveLeft = false;
+var moveRight = false;
 
 // No gravity on these! So, that player doesn't slide
 var unevenMeshes = [];
+
+
 
 
 
@@ -558,11 +566,7 @@ function createWorld(){
 
 function setupSpectator(){
 	camera = new BABYLON.ArcRotateCamera("myCamera", 4, 1.6, 275, new BABYLON.Vector3(0, 60, 0), scene);
-	
-	// Rotate camera
-	engine.runRenderLoop(function () {
-		camera.alpha += 0.001;
-	}); 
+	spectatorCameraRotate = setInterval(function(){camera.alpha += 0.001;}, 10);
 }
 
 function setupSocketIO(){
@@ -716,8 +720,8 @@ function setupSocketIO(){
 			
 			//Player model
 			playerMesh.material = playerMat;
-			playerMesh.checkCollisions = false;
-			playerMesh.isPickable = false;
+			playerMesh.checkCollisions = true;
+			//playerMesh.isPickable = false;
 			playerMesh.scaling = new BABYLON.Vector3(1.25,1.25,1.25);
 			
 			//Sword setup
@@ -771,27 +775,52 @@ function setupGUI(){
 	///////  HP! (max = 400)  ///////
 	var noHpBar = new BABYLON.GUI.Rectangle();
 	noHpBar.width = "400px";
-	noHpBar.height = "50px";
-	noHpBar.color = "Red";
-	noHpBar.background = "Red";
+	noHpBar.height = "35px";
+	noHpBar.color = "Black";
+	noHpBar.background = "Black";
 	noHpBar.thickness = 5;
 	noHpBar.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
 	noHpBar.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
-	noHpBar.top = -15;
+	noHpBar.top = -60;
 	noHpBar.left = -15;
 	advancedTexture.addControl(noHpBar);    
 
 	hpBar = new BABYLON.GUI.Rectangle();
 	hpBar.width = "400px";	////////////	  *Player's health*
-	hpBar.height = "50px";
-	hpBar.color = "Green";
-	hpBar.background = "Green";
+	hpBar.height = "35px";
+	hpBar.color = "Red";
+	hpBar.background = "Red";
 	hpBar.thickness = 5;
 	hpBar.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
 	hpBar.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
-	hpBar.top = -15;
+	hpBar.top = -60;
 	hpBar.left = -15;
 	advancedTexture.addControl(hpBar);
+	
+	///////  Stamina! (max = 300)  ///////
+	var noStamBar = new BABYLON.GUI.Rectangle();
+	noStamBar.width = "300px";
+	noStamBar.height = "25px";
+	noStamBar.color = "Black";
+	noStamBar.background = "Black";
+	noStamBar.thickness = 5;
+	noStamBar.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+	noStamBar.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+	noStamBar.top = -15;
+	noStamBar.left = -15;
+	advancedTexture.addControl(noStamBar);    
+
+	stamBar = new BABYLON.GUI.Rectangle();
+	stamBar.width = "300px";	////////////	  *Player's health*
+	stamBar.height = "25px";
+	stamBar.color = "Green";
+	stamBar.background = "Green";
+	stamBar.thickness = 5;
+	stamBar.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+	stamBar.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+	stamBar.top = -15;
+	stamBar.left = -15;
+	advancedTexture.addControl(stamBar);
 	
 }
 
@@ -803,6 +832,9 @@ function setupPlayer(nickname){
 	movementControls();
 	attackingControls();
 	checkForDeath();
+	
+	// Clear spectator camera rotation
+	clearInterval(spectatorCameraRotate);
 	
 	// On click event, request pointer lock
 	canvas.addEventListener("click", function (evt) {
@@ -816,20 +848,32 @@ function setupPlayer(nickname){
 	function respawn(){
 		//Overwrite spectator camera with FPS cam!
 		camera.dispose();
-		camera = new BABYLON.FreeCamera("myCamera", new BABYLON.Vector3(0, 9.1, 0), scene);
+		
+		//Static camera radius
+		var cameraRadius = 3;
+		
+		//camera = new BABYLON.FreeCamera("myCamera", new BABYLON.Vector3(0, 9.1, 0), scene);
+		camera = new BABYLON.ArcRotateCamera("myCamera", Math.PI * 0.75, Math.PI/2, cameraRadius, new BABYLON.Vector3(0, 0, 0), scene);
 		
 		//Aiming
 		camera.angularSensibility = 1000;
 		camera.inertia = 0.2;
 		
 		//Min z
-		camera.minZ 	= 0;
+		camera.minZ = 0;
 		
 		//Disable camera movement
 		camera.keysDown = [9999];
 		camera.keysUp = [9999];
 		camera.keysLeft = [9999];
 		camera.keysRight = [9999];
+		
+		//Limit vertical viewing angle
+		camera.upperBetaLimit = 2.55;
+		
+		//Disable camera zoom
+		camera.lowerRadiusLimit = cameraRadius;
+		camera.upperRadiusLimit = cameraRadius;
 		
 		//Add control to camera (Only rotation)
 		camera.attachControl(canvas, true);
@@ -846,7 +890,7 @@ function setupPlayer(nickname){
 		players[mySocketId].trackingBox = BABYLON.Mesh.CreateBox("me", 1, scene);
 		
 		//Define player's collision ZONE!
-		players[mySocketId].trackingBox.ellipsoid = new BABYLON.Vector3(1.5, 2.0, 1.5);
+		players[mySocketId].trackingBox.ellipsoid = new BABYLON.Vector3(0.75, 2.0, 0.75);
 		
 		//Player doesn't need to see their own mesh
 		players[mySocketId].trackingBox.visibility = false;
@@ -884,7 +928,8 @@ function setupPlayer(nickname){
 			//Player material
 			var playerMat = new BABYLON.StandardMaterial("mat_" + mySocketId, scene);
 			playerMat.emissiveColor = new BABYLON.Color3(0,0,0);
-			playerMat.diffuseColor = new BABYLON.Color3(players[mySocketId].color[0],players[mySocketId].color[1],players[mySocketId].color[2]);
+			//playerMat.diffuseColor = new BABYLON.Color3(players[mySocketId].color[0],players[mySocketId].color[1],players[mySocketId].color[2]);
+			playerMat.diffuseColor = new BABYLON.Color3(110,249,202);
 			playerMat.specularColor = new BABYLON.Color3(0,0,0);
 			
 			//Sword material
@@ -1062,7 +1107,7 @@ function setupPlayer(nickname){
 				players[mySocketId].characterMesh.position.x = players[mySocketId].trackingBox.position.x;
 				players[mySocketId].characterMesh.position.y = players[mySocketId].trackingBox.position.y - 2;
 				players[mySocketId].characterMesh.position.z = players[mySocketId].trackingBox.position.z;
-				players[mySocketId].characterMesh.rotation.y = players[mySocketId].trackingBox.rotation.y;
+				players[mySocketId].characterMesh.rotation.y = players[mySocketId].trackingBox.rotation.y + Math.PI;
 			});
 			
 			//Set interval for sending player 1's position to others
@@ -1089,11 +1134,6 @@ function setupPlayer(nickname){
 		
 		// Movement Vars
 		var gravity = -0.2;
-		
-		var moveForward = false;
-		var moveBack = false;
-		var moveLeft = false;
-		var moveRight = false;
 		
 		// What kind of surface is the player on?
 		var canJump = false;
@@ -1162,20 +1202,20 @@ function setupPlayer(nickname){
 		}));
 		
 		
-		// Raycast from player's camera
+		// Raycast from player's tracking box
 		// 1. can player jump?
 		// 2. is the player on an uneven surface?
 		function checkPlayersSurface() {
 			// Origin, Direction, Length
-			var cameraRay = new BABYLON.Ray(camera.position, new BABYLON.Vector3(0, -1, 0), 2.2);
+			var surfaceCheckRay = new BABYLON.Ray(players[mySocketId].trackingBox.position, new BABYLON.Vector3(0, -1, 0), 2.2);
 
-			if (scene.pickWithRay(cameraRay).pickedMesh) {
+			if (scene.pickWithRay(surfaceCheckRay).pickedMesh) {
 				canJump = true;
 			} else {
 				canJump = false;
 			}
 			
-			onUnevenSurface = scene.pickWithRay(cameraRay, function (mesh) {
+			onUnevenSurface = scene.pickWithRay(surfaceCheckRay, function (mesh) {
 				for(var x=0; x<unevenMeshes.length; x++){
 					if(mesh==unevenMeshes[x]){
 						return true;
@@ -1189,15 +1229,15 @@ function setupPlayer(nickname){
 		// If player is on an uneven surface... determine the player's next Y position so that they move smoothly down those surfaces
 		function nextPosOnUnevenMesh() {
 			// Origin, Direction, Length
-			var cameraRay = scene.pickWithRay(new BABYLON.Ray(camera.position, new BABYLON.Vector3(0, -1, 0), 2.35));
-			var cameraToGroundRatio = 2.11;
+			var surfaceCheckRay = scene.pickWithRay(new BABYLON.Ray(players[mySocketId].trackingBox.position, new BABYLON.Vector3(0, -1, 0), 2.35));
+			var originToGroundRatio = 2.11;
 			
-			if(cameraRay.hit){
+			if(surfaceCheckRay.hit){
 				// If player is still on mesh... send new position
-				return cameraRay.pickedPoint.y + cameraToGroundRatio;
+				return surfaceCheckRay.pickedPoint.y + originToGroundRatio;
 			}else{
 				// else... ignore
-				return camera.position.y;
+				return players[mySocketId].trackingBox.position.y;
 			}
 		}
 		
@@ -1232,38 +1272,39 @@ function setupPlayer(nickname){
 			// Player movement per frame
 			var xMovement = 0;
 			var zMovement = 0;
-			var buttonsPressed = 0;
 			var animRatio = scene.getAnimationRatio();
 			
 			// Calculate player's movement (WASD)
 			if(moveForward){
-				xMovement += Math.sin(camera.rotation.y)*(playerSpeed*0.15);
-				zMovement += Math.cos(camera.rotation.y)*(playerSpeed*0.15);
-				buttonsPressed++;
+				xMovement += Math.sin(players[mySocketId].trackingBox.rotation.y)*(playerSpeed*0.15);
+				zMovement += Math.cos(players[mySocketId].trackingBox.rotation.y)*(playerSpeed*0.15);
 			}
 			
 			if(moveBack){
-				xMovement -= Math.sin(camera.rotation.y)*(playerSpeed*0.15);
-				zMovement -= Math.cos(camera.rotation.y)*(playerSpeed*0.15);
-				buttonsPressed++;
+				// If forward is also being held, then give the backwards movement enough power to negate it, else allow the backpeddle to be slower
+				if(moveForward){
+					xMovement -= Math.sin(players[mySocketId].trackingBox.rotation.y)*(playerSpeed*0.15);
+					zMovement -= Math.cos(players[mySocketId].trackingBox.rotation.y)*(playerSpeed*0.15);
+				}else{
+					xMovement -= Math.sin(players[mySocketId].trackingBox.rotation.y)*(playerSpeed*0.075);
+					zMovement -= Math.cos(players[mySocketId].trackingBox.rotation.y)*(playerSpeed*0.075);
+				}
 			}
 			
 			if(moveLeft){
-				zMovement += Math.sin(camera.rotation.y)*(playerSpeed*0.15);
-				xMovement -= Math.cos(camera.rotation.y)*(playerSpeed*0.15);
-				buttonsPressed++;
+				zMovement += Math.sin(players[mySocketId].trackingBox.rotation.y)*(playerSpeed*0.15);
+				xMovement -= Math.cos(players[mySocketId].trackingBox.rotation.y)*(playerSpeed*0.15);
 			}	
 
 			if(moveRight){
-				zMovement -= Math.sin(camera.rotation.y)*(playerSpeed*0.15);
-				xMovement += Math.cos(camera.rotation.y)*(playerSpeed*0.15);
-				buttonsPressed++;
+				zMovement -= Math.sin(players[mySocketId].trackingBox.rotation.y)*(playerSpeed*0.15);
+				xMovement += Math.cos(players[mySocketId].trackingBox.rotation.y)*(playerSpeed*0.15);
 			}
 			
-			// If 2 buttons are pressed (e.g. diagonal movement) half the player's speed
-			if(buttonsPressed==2){
-				xMovement *=0.5;
-				zMovement *=0.5;
+			// If diagonal movement, then half the player's speed
+			if((moveForward&&moveRight) || (moveForward&&moveLeft) || (moveBack&&moveRight) || (moveBack&&moveLeft)){
+				xMovement *= 0.5;
+				zMovement *= 0.5;
 			}
 			
 			// Cast ray to check player's surface
@@ -1281,12 +1322,12 @@ function setupPlayer(nickname){
 			}
 			
 			// Camera will follow player's tracking box
-			camera.position.x = players[mySocketId].trackingBox.position.x;
-			camera.position.y = players[mySocketId].trackingBox.position.y;
-			camera.position.z = players[mySocketId].trackingBox.position.z;
+			camera.target.x = players[mySocketId].trackingBox.position.x;
+			camera.target.y = players[mySocketId].trackingBox.position.y;
+			camera.target.z = players[mySocketId].trackingBox.position.z;
 			
 			// Player rotation
-			players[mySocketId].trackingBox.rotation.y = camera.rotation.y - Math.PI;
+			players[mySocketId].trackingBox.rotation.y = (camera.alpha + Math.PI/2) * -1;
 			
 		}); 
 	}
@@ -1294,8 +1335,8 @@ function setupPlayer(nickname){
 	function attackingControls(){
 		
 		// Vars for determining attack dir
-		var prevCamRotX = 0;
-		var prevCamRotY = 0;
+		var prevBeta = 0;
+		var prevAlpha = 0;
 		
 		
 		// Mouse click events!
@@ -1357,20 +1398,20 @@ function setupPlayer(nickname){
 		
 		// Attack & block direction checking
 		setInterval(function() {
-			prevCamRotX = camera.rotation.x;
-			prevCamRotY = camera.rotation.y;
+			prevBeta = camera.beta;
+			prevAlpha = camera.alpha;
 		}, 250);
 		
 		
 		function getDirection(){
 			// Ratios to compare which axis had more movement
-			var xRotRatio = Math.abs(camera.rotation.x - prevCamRotX);
-			var yRotRatio = Math.abs(camera.rotation.y - prevCamRotY);
+			var betaRotRatio = Math.abs(camera.beta - prevBeta);
+			var alphaRotRatio = Math.abs(camera.alpha - prevAlpha);
 			
 			//Vertical attack!
-			if(xRotRatio >= yRotRatio){
+			if(betaRotRatio >= alphaRotRatio){
 				//Upwards
-				if(camera.rotation.x < prevCamRotX){
+				if(camera.beta > prevBeta){
 					return 1;
 				}
 				//Downwards
@@ -1382,7 +1423,7 @@ function setupPlayer(nickname){
 			//Horizontal attack!
 			else{
 				//Left
-				if(camera.rotation.y < prevCamRotY){
+				if(camera.alpha > prevAlpha){
 					return 3;
 				}
 				//Right
@@ -1490,11 +1531,12 @@ function setupPlayer(nickname){
 	}
 	
 	function checkAttackIntersection(){
+		
 		for(var x=0; x<activeClients[0].length; x++){
+			// If P1 has not hit a player on their current swing and the target player is not them, then check if a hit has occurred
 			if(!players[mySocketId].playerHit && activeClients[0][x][0]!=mySocketId){
+				// If a hit occurred between the two players
 				if(players[mySocketId].weapon.intersectsMesh(players[activeClients[0][x][0]].characterMesh, false)){
-					
-					
 					// Was the player blocking correctly?
 					if(players[mySocketId].armProxy.prevArmAnimation + 4 != players[activeClients[0][x][0]].curArmAnimation){
 						
@@ -1508,11 +1550,10 @@ function setupPlayer(nickname){
 						socket.emit('playerHit', data);						
 						
 					}
-					
-					
 				}
 			}
 		}
+		
 	}
 }
 
@@ -1535,7 +1576,7 @@ function updatePlayer1Animation(newAnimationNum, animationType){
 		// WHOLE BODY
 		if(animationType=="wholeBodyAnimation"){
 			// 0) Idle
-			if(newAnimationNum==0){
+			if(newAnimationNum==0 && !((moveForward&&!moveBack) || (!moveForward&&moveBack)) || (moveBack&&moveForward)){
 				players[mySocketId].curBodyAnimation = 0;
 				startFrame = 261;
 				endFrame = 360;
@@ -1543,15 +1584,14 @@ function updatePlayer1Animation(newAnimationNum, animationType){
 				data.animationCode = setCharAt(data.animationCode, 0, '0');
 				
 			// 1) Run
-			}else if(newAnimationNum==1){
+			}else if(newAnimationNum==1 || (newAnimationNum==0 && (moveForward&&!moveBack))){
 				players[mySocketId].curBodyAnimation = 1;
 				startFrame = 175;
 				endFrame = 199;	
 				loop = true;				
 				data.animationCode = setCharAt(data.animationCode, 0, '1');
-				
 			// 2) Back peddle
-			}else if(newAnimationNum==2){
+			}else if(newAnimationNum==2 || (newAnimationNum==0 && (!moveForward&&moveBack))){
 				players[mySocketId].curBodyAnimation = 2;
 				startFrame = 199;
 				endFrame = 175;
@@ -1560,7 +1600,6 @@ function updatePlayer1Animation(newAnimationNum, animationType){
 			}
 			
 			// Execute full animation
-			
 			//If arms are currently acting... leave them alone
 			if(players[mySocketId].armProxy.armLock){
 				
