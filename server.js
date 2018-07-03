@@ -13,7 +13,6 @@ var UUID = require('uuid/v1');
 var IP = 'N/A';
 
 
-
 app.get('/', function(req, res){
 	IP = req.header('x-forwarded-for') || req.connection.remoteAddress;
 	console.log('trying to load %s', __dirname + '/serving/index.html');
@@ -54,7 +53,8 @@ clients = [];
 io.on('connection', function(socket){
 
 	//Initialize user vars
-	socket.userID = UUID();
+	//socket.userID = UUID();
+	socket.userID = socket.id;
 	socket.userIP = IP;
 	socket.nickname = "BananaMan";
 	socket.playerInit = false;
@@ -63,7 +63,6 @@ io.on('connection', function(socket){
 	
 	//tell the server someone connected
 	console.log('++ User ' + socket.userID + ' has connected with the IP: ' + socket.userIP);
-	
 
 	//tell the player they connected, giving them their id
     socket.on('onconnected', function(onSuccess) {
@@ -122,24 +121,25 @@ io.on('connection', function(socket){
     });
 	
 	
-	
-	
-	
-	
-	
 	socket.on('playerHit', function(data) {
 		
-		// Tell player that they have been successfully hit
-		//console.log(data.uID + " has been hit!");
-		//console.log(socket.id);
-		socket.broadcast.emit('updateHealth');
+		console.log(data.uID + " has been hit!");
 		
+		// Tell player that they have been successfully hit
+		socket.to(data.uID).emit('lostHealth');
+		
+		// Tell all players (flash color, play sound, etc.)
+		io.sockets.emit('playerGotHit', data.uID);
     });
 	
 	
-	
-	
-	
+	socket.on('playerBlocked', function(data) {
+		
+		console.log(data.uID + " has blocked an attack!");
+		
+		// Tell all players to play a blocking sound
+		io.sockets.emit('playSound', data);
+    });
 	
 	
 	//Called when client disconnects

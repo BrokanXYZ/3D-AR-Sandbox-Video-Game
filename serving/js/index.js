@@ -30,9 +30,26 @@ var moveForward = false;
 var moveBack = false;
 var moveLeft = false;
 var moveRight = false;
+var actionDelay = false;
+
+var charMeshIsSetup = false;
+
+
+// Delay times
+var gotHitDelay = 750;
+var gotBlockedDelay = 1500;
 
 // No gravity on these! So, that player doesn't slide
 var unevenMeshes = [];
+
+// P1 Sounds
+var block;
+var gotHit;
+var lavaDeath;
+var swing;
+var soundtrack;
+
+
 
 
 
@@ -56,7 +73,25 @@ function initializeBabylon(){
 		scene.render();
 	});
 }
-		
+
+function loadP1Sounds(){
+	block = new BABYLON.Sound("block", "serving/sounds/effects/block.wav", scene, null, {volume: 4});
+	gotHit = new BABYLON.Sound("gotHit", "/serving/sounds/effects/gotHit.wav", scene, null, {volume: 4});
+	lavaDeath = new BABYLON.Sound("lavaDeath", "/serving/sounds/effects/lavaDeath.wav", scene, null, {volume: 4});
+	swing = new BABYLON.Sound("swing", "/serving/sounds/effects/swing.wav", scene, null, {volume: 4});
+	respawn = new BABYLON.Sound("swing", "/serving/sounds/effects/respawn.wav", scene, null, {volume: 1});
+	death = new BABYLON.Sound("swing", "/serving/sounds/effects/death.wav", scene, null, {volume: 4});
+	
+	//song1 = new BABYLON.Sound("song1", "/serving/sounds/tracks/LightEmUp.mp3", scene, null, {volume: 0.5, autoplay:true});
+	song2 = new BABYLON.Sound("song2", "/serving/sounds/tracks/Mindwarp.mp3", scene, null, {volume: 0.5, autoplay: true});
+	song3 = new BABYLON.Sound("song3", "/serving/sounds/tracks/Mirrorball.mp3", scene, null, {volume: 0.5});
+	
+	//song1.onended = function(){ song2.play();};
+	song2.onended = function(){ song3.play();};
+	song3.onended = function(){ song1.play();};
+	
+}
+
 function createWorld(){
 	
 	//Scene Background Color
@@ -676,10 +711,12 @@ function setupSocketIO(){
 	});
 	
 	
-	socket.on('updateHealth', function() {
+	socket.on('lostHealth', function() {
 		
-		console.log("it works");
+		// P1 was hit, therefore action lock for 1/2s
+		delayActions(gotHitDelay);
 		
+		// Update Health
 		switch(hpBar.width){
 			case "400px":
 				hpBar.width = "300px";
@@ -695,8 +732,34 @@ function setupSocketIO(){
 				break;
 		}
 		
+		
+		
 	});
 	
+	socket.on('playerGotHit', function(uID) {
+		// Player color flash
+		playerColorFlash(uID);
+		gotHit.play();
+	});
+	
+	socket.on('playSound', function(data) {
+		
+		switch(data.soundID){
+			// Swing
+			case 0:
+				swing.play();
+				break;
+			// Block
+			case 1:
+				block.play();
+				break;
+			// Hit
+			case 2:
+				gotHit.play();
+				break;
+		}
+		
+	});
 	
 	function createAnotherPlayer(uID, uColor){
 		BABYLON.SceneLoader.ImportMesh("", "/serving/meshes/", "player.babylon", scene, function (newMeshes, particleSystems, skeletons) {
@@ -797,9 +860,9 @@ function setupGUI(){
 	hpBar.left = -15;
 	advancedTexture.addControl(hpBar);
 	
-	///////  Stamina! (max = 300)  ///////
+	///////  Stamina! (max = 400)  ///////
 	var noStamBar = new BABYLON.GUI.Rectangle();
-	noStamBar.width = "300px";
+	noStamBar.width = "400px";
 	noStamBar.height = "25px";
 	noStamBar.color = "Black";
 	noStamBar.background = "Black";
@@ -811,7 +874,7 @@ function setupGUI(){
 	advancedTexture.addControl(noStamBar);    
 
 	stamBar = new BABYLON.GUI.Rectangle();
-	stamBar.width = "300px";	////////////	  *Player's health*
+	stamBar.width = "400px";	////////////	  *Player's stamina*
 	stamBar.height = "25px";
 	stamBar.color = "Green";
 	stamBar.background = "Green";
@@ -826,7 +889,7 @@ function setupGUI(){
 
 function setupPlayer(nickname){
 	
-	respawn();
+	respawnPlayer();
 	playerTrackingBoxSetup();
 	playerCharacterSetup();
 	movementControls();
@@ -845,7 +908,7 @@ function setupPlayer(nickname){
 	});
 	
 	
-	function respawn(){
+	function respawnPlayer(){
 		//Overwrite spectator camera with FPS cam!
 		camera.dispose();
 		
@@ -878,8 +941,15 @@ function setupPlayer(nickname){
 		//Add control to camera (Only rotation)
 		camera.attachControl(canvas, true);
 		
-		//Respawn effect
-		respawnParticles(camera);
+		//Play Respawn sound
+		respawn.play();
+		
+		//Respawn effect (only after characterMesh has been setup)
+		if(charMeshIsSetup){
+			respawnParticles(players[mySocketId].characterMesh);
+		}else{
+			charMeshIsSetup = true;
+		}
 	}
 	
 	function playerTrackingBoxSetup(){
@@ -902,12 +972,11 @@ function setupPlayer(nickname){
 		//Package player data
 		var playerData = {};
 		
-		// Generate player's color
-		playerData.color = [Math.random(), Math.random(), Math.random()];
 		playerData.nickname = nickname;
 		
-		// Set player 1's color
-		players[mySocketId].color = playerData.color;
+		// Get random color for player
+		playerData.color = players[mySocketId].color = new Array(randomNumber(0,2), randomNumber(0,2), randomNumber(0,2));
+		
 		
 		//Let the server know the player has been created
 		socket.emit('playerInit', playerData);
@@ -928,8 +997,7 @@ function setupPlayer(nickname){
 			//Player material
 			var playerMat = new BABYLON.StandardMaterial("mat_" + mySocketId, scene);
 			playerMat.emissiveColor = new BABYLON.Color3(0,0,0);
-			//playerMat.diffuseColor = new BABYLON.Color3(players[mySocketId].color[0],players[mySocketId].color[1],players[mySocketId].color[2]);
-			playerMat.diffuseColor = new BABYLON.Color3(110,249,202);
+			playerMat.diffuseColor = new BABYLON.Color3(players[mySocketId].color[0],players[mySocketId].color[1],players[mySocketId].color[2]);
 			playerMat.specularColor = new BABYLON.Color3(0,0,0);
 			
 			//Sword material
@@ -975,7 +1043,7 @@ function setupPlayer(nickname){
 			players[mySocketId].curBodyAnimation = 0;
 			players[mySocketId].curArmAnimation = 0;
 			players[mySocketId].attackCheckInterval;
-			players[mySocketId].playerHit = false;
+			players[mySocketId].swingComplete = false;
 			
 			
 			// Setup arm proxy handler (setting events for 'armPrepped', 'armLock', and 'prevArmAnimation')
@@ -1070,10 +1138,10 @@ function setupPlayer(nickname){
 			playerSkeleton.bones[14].animations[0].addEvent(prepEventD);
 			
 			// 2. arm unprep
-			var unprepEventR = new BABYLON.AnimationEvent(120, function() { players[mySocketId].armProxy.armPrepped = false; players[mySocketId].attackCheckInterval = setInterval(checkAttackIntersection,50);}, true);
-			var unprepEventL = new BABYLON.AnimationEvent(70, function() { players[mySocketId].armProxy.armPrepped = false; players[mySocketId].attackCheckInterval = setInterval(checkAttackIntersection,50);}, true);
-			var unprepEventD = new BABYLON.AnimationEvent(20, function() { players[mySocketId].armProxy.armPrepped = false; players[mySocketId].attackCheckInterval = setInterval(checkAttackIntersection,50);}, true);
-			var unprepEventU = new BABYLON.AnimationEvent(230, function() { players[mySocketId].armProxy.armPrepped = false; players[mySocketId].attackCheckInterval = setInterval(checkAttackIntersection,50);}, true);
+			var unprepEventR = new BABYLON.AnimationEvent(120, function() { players[mySocketId].armProxy.armPrepped = false; players[mySocketId].attackCheckInterval = setInterval(checkAttackIntersection,50); swing.play();}, true);
+			var unprepEventL = new BABYLON.AnimationEvent(70, function() { players[mySocketId].armProxy.armPrepped = false; players[mySocketId].attackCheckInterval = setInterval(checkAttackIntersection,50); swing.play();}, true);
+			var unprepEventD = new BABYLON.AnimationEvent(20, function() { players[mySocketId].armProxy.armPrepped = false; players[mySocketId].attackCheckInterval = setInterval(checkAttackIntersection,50); swing.play();}, true);
+			var unprepEventU = new BABYLON.AnimationEvent(230, function() { players[mySocketId].armProxy.armPrepped = false; players[mySocketId].attackCheckInterval = setInterval(checkAttackIntersection,50); swing.play();}, true);
 			
 			playerSkeleton.bones[14].animations[0].addEvent(unprepEventR);
 			playerSkeleton.bones[14].animations[0].addEvent(unprepEventL);
@@ -1092,10 +1160,10 @@ function setupPlayer(nickname){
 			playerSkeleton.bones[14].animations[0].addEvent(lockEventD);
 			
 			// 4. arm unlock
-			var unlockEventR = new BABYLON.AnimationEvent(130, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval); players[mySocketId].playerHit = false;}, true);
-			var unlockEventL = new BABYLON.AnimationEvent(80, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval); players[mySocketId].playerHit = false;}, true);
-			var unlockEventD = new BABYLON.AnimationEvent(30, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval); players[mySocketId].playerHit = false;}, true);
-			var unlockEventU = new BABYLON.AnimationEvent(240, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval); players[mySocketId].playerHit = false;}, true);
+			var unlockEventR = new BABYLON.AnimationEvent(130, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval); players[mySocketId].swingComplete = false;}, true);
+			var unlockEventL = new BABYLON.AnimationEvent(80, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval); players[mySocketId].swingComplete = false;}, true);
+			var unlockEventD = new BABYLON.AnimationEvent(30, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval); players[mySocketId].swingComplete = false;}, true);
+			var unlockEventU = new BABYLON.AnimationEvent(240, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval); players[mySocketId].swingComplete = false;}, true);
 			
 			playerSkeleton.bones[14].animations[0].addEvent(unlockEventR);
 			playerSkeleton.bones[14].animations[0].addEvent(unlockEventL);
@@ -1125,7 +1193,6 @@ function setupPlayer(nickname){
 			
 			// Start idle animation
 			scene.beginAnimation(playerSkeleton, 261, 360, true, 1.0);
-			
 		});
 		
 	}
@@ -1441,19 +1508,27 @@ function setupPlayer(nickname){
 			switch (movementDir) {
 					//UP
 					case 1:
-						updatePlayer1Animation(1, "armAnimation");
+						if(!actionDelay){
+							updatePlayer1Animation(1, "armAnimation");
+						}
 						break;
 					//DOWN
 					case 2:
-						updatePlayer1Animation(2, "armAnimation");
+						if(!actionDelay){
+							updatePlayer1Animation(2, "armAnimation");
+						}
 						break;
 					//LEFT
 					case 3:
-						updatePlayer1Animation(3, "armAnimation");
+						if(!actionDelay){
+							updatePlayer1Animation(3, "armAnimation");
+						}
 						break;	
 					//RIGHT
 					case 4:
-						updatePlayer1Animation(4, "armAnimation");
+						if(!actionDelay){
+							updatePlayer1Animation(4, "armAnimation");
+						}
 						break;
 
 					default:
@@ -1476,19 +1551,27 @@ function setupPlayer(nickname){
 			switch (movementDir) {
 					//UP
 					case 1:
-						updatePlayer1Animation(5, "armAnimation");
+						if(!actionDelay){
+							updatePlayer1Animation(5, "armAnimation");
+						}
 						break;
 					//DOWN
 					case 2:
-						updatePlayer1Animation(6, "armAnimation");
+						if(!actionDelay){
+							updatePlayer1Animation(6, "armAnimation");
+						}
 						break;
-					//LEFT
-					case 3:
-						updatePlayer1Animation(7, "armAnimation");
-						break;	
 					//RIGHT
 					case 4:
-						updatePlayer1Animation(8, "armAnimation");
+						if(!actionDelay){
+							updatePlayer1Animation(7, "armAnimation");
+						}
+						break;	
+					//LEFT
+					case 3:
+						if(!actionDelay){
+							updatePlayer1Animation(8, "armAnimation");
+						}
 						break;
 
 					default:
@@ -1534,14 +1617,15 @@ function setupPlayer(nickname){
 		
 		for(var x=0; x<activeClients[0].length; x++){
 			// If P1 has not hit a player on their current swing and the target player is not them, then check if a hit has occurred
-			if(!players[mySocketId].playerHit && activeClients[0][x][0]!=mySocketId){
+			if(!players[mySocketId].swingComplete && activeClients[0][x][0]!=mySocketId){
 				// If a hit occurred between the two players
 				if(players[mySocketId].weapon.intersectsMesh(players[activeClients[0][x][0]].characterMesh, false)){
+					
+					// A hit has occurred, therefore the swing is complete
+					players[mySocketId].swingComplete = true;
+					
 					// Was the player blocking correctly?
 					if(players[mySocketId].armProxy.prevArmAnimation + 4 != players[activeClients[0][x][0]].curArmAnimation){
-						
-						console.log(mySocketId + " hit " + activeClients[0][x][0]);
-						players[mySocketId].playerHit = true;
 						
 						// Tell server player 1 hit another player
 						let data = {};
@@ -1549,6 +1633,18 @@ function setupPlayer(nickname){
 						
 						socket.emit('playerHit', data);						
 						
+						
+					// The other player blocked the attack!
+					}else{
+						
+						// P1's attack was blocked! Delay actions for 3/4s
+						delayActions(gotBlockedDelay);
+						
+						let data = {};
+						data.uID = activeClients[0][x][0];
+						data.soundID = 1;
+						
+						socket.emit('playerBlocked', data);
 					}
 				}
 			}
@@ -1622,12 +1718,10 @@ function updatePlayer1Animation(newAnimationNum, animationType){
 				}
 				scene.beginAnimation(players[mySocketId].skeleton, startFrame, endFrame, loop);
 			}
-			console.log("armCycle");
 			
 		// ARM(s) ONLY
 		}else if(animationType=="armAnimation"){
 			
-			console.log("armConstant");
 			let stopBlock = false;
 			
 			//Override loopMode for arm animations (so that they pause at the final frame)
@@ -1677,17 +1771,17 @@ function updatePlayer1Animation(newAnimationNum, animationType){
 						data.animationCode = setCharAt(data.animationCode, 1, '6');
 						stopBlock = true;
 						break;
-					// Left Block Stop
+					// Right Block Stop
 					case 7:
-						startFrame = 95;
-						endFrame = 95;
+						startFrame = 145;
+						endFrame = 145;
 						data.animationCode = setCharAt(data.animationCode, 1, '7');
 						stopBlock = true;
 						break;
-					// Right Block Stop
+					// Left Block Stop
 					case 8:
-						startFrame = 145;
-						endFrame = 145;
+						startFrame = 95;
+						endFrame = 95;
 						data.animationCode = setCharAt(data.animationCode, 1, '8');
 						stopBlock = true;
 						break;
@@ -1762,19 +1856,19 @@ function updatePlayer1Animation(newAnimationNum, animationType){
 				data.animationCode = setCharAt(data.animationCode, 0, '6');
 				loop = true;
 				
-			// 7) Left Block
+			// 7) Right Block
 			}else if(newAnimationNum==7){
 				players[mySocketId].curArmAnimation = 7;
-				startFrame = 91;
-				endFrame = 95;
+				startFrame = 141;
+				endFrame = 145;
 				data.animationCode = setCharAt(data.animationCode, 0, '7');
 				loop = true;
 				
-			// 8) Right Block
+			// 8) Left Block
 			}else if(newAnimationNum==8){
 				players[mySocketId].curArmAnimation = 8;
-				startFrame = 141;
-				endFrame = 145;
+				startFrame = 91;
+				endFrame = 95;
 				data.animationCode = setCharAt(data.animationCode, 0, '8');
 				loop = true;
 			}
@@ -1886,15 +1980,15 @@ function updateOtherPlayersAnimation(animationCode, animationType, userID){
 					startFrame = 45;
 					endFrame = 45;
 					break;
-				// Left Block Stop
-				case '7':
-					startFrame = 95;
-					endFrame = 95;
-					break;
 				// Right Block Stop
-				case '8':
+				case '7':
 					startFrame = 145;
 					endFrame = 145;
+					break;
+				// Left Block Stop
+				case '8':
+					startFrame = 95;
+					endFrame = 95;
 					break;
 			}
 			
@@ -1945,18 +2039,18 @@ function updateOtherPlayersAnimation(animationCode, animationType, userID){
 			endFrame = 45;
 			loop = true;
 			
-		// 7) Left Block
+		// 7) Right Block
 		}else if(animationCode[0]=='7'){
 			players[userID].curArmAnimation = 7;
-			startFrame = 91;
-			endFrame = 95;
-			loop = true;
-			
-		// 8) Right Block
-		}else if(animationCode[0]=='8'){
-			players[userID].curArmAnimation = 8;
 			startFrame = 141;
 			endFrame = 145;
+			loop = true;
+			
+		// 8) Left Block
+		}else if(animationCode[0]=='8'){
+			players[userID].curArmAnimation = 8;
+			startFrame = 91;
+			endFrame = 95;
 			loop = true;
 		}
 		
@@ -2106,10 +2200,38 @@ function randomNumber(min,max){
 function setCharAt(targetString, index, setChar) {
     return targetString.substr(0, index) + setChar+ targetString.substr(index + setChar.length);
 }
+function playerColorFlash(socketID){
+	players[socketID].characterMesh.material.emissiveColor.r = 1;
+	setTimeout(function(){ players[socketID].characterMesh.material.emissiveColor.r = 0; }, 500);
+}
+function delayActions(delay){
+	actionDelay = true;
+	setTimeout(function(){ actionDelay = false; }, delay);
+}
+
+
+function testParticle(){
+	// Create a particle system
+    var particleSystem = new BABYLON.ParticleSystem("particles", 2000, scene);
+
+    //Texture of each particle
+    particleSystem.particleTexture = new BABYLON.Texture("textures/flare.png", scene);
+
+    // Where the particles come from
+    particleSystem.emitter = new BABYLON.Vector3(0, 0, 0); // the starting object, the emitter
+    particleSystem.minEmitBox = new BABYLON.Vector3(-5, -5, -5); // Starting all from
+    particleSystem.maxEmitBox = new BABYLON.Vector3(5, 5, 5); // To...
+
+    // Start the particle system
+    particleSystem.start();
+}
+
+
 
 //Entry point
 document.addEventListener("DOMContentLoaded", function() {
 	initializeBabylon();
+	loadP1Sounds();
     createWorld();
 	setupSpectator();
 	setupSocketIO();
