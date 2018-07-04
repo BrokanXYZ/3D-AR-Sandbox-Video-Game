@@ -53,6 +53,12 @@ var swing;
 var respawn;
 var death;
 
+// Respawn points
+var respawnPoints = new Array();
+respawnPoints[0] = new BABYLON.Vector3(43,3,-42);
+respawnPoints[1] = new BABYLON.Vector3(-43,3,-39);
+respawnPoints[2] = new BABYLON.Vector3(-46,3,40);
+respawnPoints[3] = new BABYLON.Vector3(33,3,39);
 
 
 function initializeBabylon(){
@@ -686,14 +692,16 @@ function setupSocketIO(){
 	
 	socket.on('playerDeath', function(data) {
 		console.log("player " + data.userID + " has died.");
-		players[data.userID].isVisible = false;
+		players[data.userID].characterMesh.isVisible = false;
+		players[data.userID].weapon.isVisible = false;
 		
 		//Death effect
 		deathParticles(data.location);
 		
 		//using this instead of an ON_RESPAWN (more efficient*)
 		setTimeout(function(){
-			players[data.userID].isVisible = true;
+			players[data.userID].characterMesh.isVisible = true;
+			players[data.userID].weapon.isVisible = true;
 			respawnParticles(players[data.userID]);
 		}, 10000);
 	});
@@ -726,6 +734,8 @@ function setupSocketIO(){
 				hpBar.width = "100px";
 				break;
 			case "100px":
+				// DEATH!
+				player1Death(false);
 				hpBar.width = "400px";
 				break;
 		}
@@ -892,7 +902,7 @@ function setupPlayer(nickname){
 	
 	
 	if(!spectate){
-		respawnPlayer();
+		playerCameraSetup();
 		playerTrackingBoxSetup();
 		playerCharacterSetup();
 		movementControls();
@@ -917,7 +927,7 @@ function setupPlayer(nickname){
 		camera.speed = 3;
 	}
 	
-	function respawnPlayer(){
+	function playerCameraSetup(){
 		//Overwrite spectator camera with FPS cam!
 		camera.dispose();
 		
@@ -954,11 +964,11 @@ function setupPlayer(nickname){
 		respawn.play();
 		
 		//Respawn effect (only after characterMesh has been setup)
-		if(charMeshIsSetup){
+		/*if(charMeshIsSetup){
 			respawnParticles(players[mySocketId].characterMesh);
 		}else{
 			charMeshIsSetup = true;
-		}
+		}*/
 		
 	}
 	
@@ -976,7 +986,7 @@ function setupPlayer(nickname){
 		players[mySocketId].trackingBox.visibility = false;
 		
 		//Configure player's tracking box
-		players[mySocketId].trackingBox.position = new BABYLON.Vector3(0, 9.5, 0);
+		players[mySocketId].trackingBox.position = respawnPoints[Math.floor(Math.random() * 4)];
 		players[mySocketId].trackingBox.isPickable = false;
 		
 		//Package player data
@@ -2195,6 +2205,47 @@ function deathParticles(location){
 	}, 3000);
 	
 }
+function respawn(){
+	
+	// Clear death camera rotation
+	clearInterval(spectatorCameraRotate);
+	
+	//Overwrite spectator camera with FPS cam!
+	camera.dispose();
+	
+	//Static camera radius
+	var cameraRadius = 3;
+	
+	//camera = new BABYLON.FreeCamera("myCamera", new BABYLON.Vector3(0, 9.1, 0), scene);
+	camera = new BABYLON.ArcRotateCamera("myCamera", Math.PI * 0.75, Math.PI/2, cameraRadius, new BABYLON.Vector3(0, 0, 0), scene);
+	
+	//Aiming
+	camera.angularSensibility = 1000;
+	camera.inertia = 0.2;
+	
+	//Min z
+	camera.minZ = 0;
+	
+	//Disable camera movement
+	camera.keysDown = [9999];
+	camera.keysUp = [9999];
+	camera.keysLeft = [9999];
+	camera.keysRight = [9999];
+	
+	//Limit vertical viewing angle
+	camera.upperBetaLimit = 2.55;
+	
+	//Disable camera zoom
+	camera.lowerRadiusLimit = cameraRadius;
+	camera.upperRadiusLimit = cameraRadius;
+	
+	//Add control to camera (Only rotation)
+	camera.attachControl(canvas, true);
+	
+	//Play Respawn sound
+	respawn.play();
+	
+}
 function player1Death(isLavaDeath){
 	
 	// Disable P1 actions
@@ -2218,9 +2269,9 @@ function player1Death(isLavaDeath){
 	//Tell others of your death
 	socket.emit('playerDeath', data);
 	
-	//Destroy FP camera
+	//Dispose player camera
 	camera.dispose();
-
+	
 	//Death camera
 	camera = new BABYLON.ArcRotateCamera("myCamera", 0, 0.5, 70, new BABYLON.Vector3(location.x, location.y, location.z), scene);
 	spectatorCameraRotate = setInterval(function(){camera.alpha += 0.001;}, 10);
@@ -2228,13 +2279,61 @@ function player1Death(isLavaDeath){
 	//Death Sound
 	death.play();
 	
+	deathParticles(location);
+	
 	if(isLavaDeath){
-		//deathParticles(location);
+		
 		lavaDeath.play();
 	}
 	
 	//Respawn after 10 seconds!
-	setTimeout(respawn, 10000);	
+	setTimeout(function(){
+		
+		
+		players[mySocketId].trackingBox.position = respawnPoints[Math.floor(Math.random() * 4)];
+		
+		// Clear death camera rotation
+		clearInterval(spectatorCameraRotate);
+		
+		//Overwrite spectator camera with FPS cam!
+		camera.dispose();
+		
+		//Static camera radius
+		var cameraRadius = 3;
+		
+		//camera = new BABYLON.FreeCamera("myCamera", new BABYLON.Vector3(0, 9.1, 0), scene);
+		camera = new BABYLON.ArcRotateCamera("myCamera", Math.PI * 0.75, Math.PI/2, cameraRadius, new BABYLON.Vector3(0, 0, 0), scene);
+		
+		//Aiming
+		camera.angularSensibility = 1000;
+		camera.inertia = 0.2;
+		
+		//Min z
+		camera.minZ = 0;
+		
+		//Disable camera movement
+		camera.keysDown = [9999];
+		camera.keysUp = [9999];
+		camera.keysLeft = [9999];
+		camera.keysRight = [9999];
+		
+		//Limit vertical viewing angle
+		camera.upperBetaLimit = 2.55;
+		
+		//Disable camera zoom
+		camera.lowerRadiusLimit = cameraRadius;
+		camera.upperRadiusLimit = cameraRadius;
+		
+		//Add control to camera (Only rotation)
+		camera.attachControl(canvas, true);
+		
+		//Play Respawn sound
+		respawn.play();
+		
+		player1IsDead = false;
+		
+	}, 5000);	
+	
 }
 function randomNumber(min,max){
 	return Math.random() * (max-min)+min;
