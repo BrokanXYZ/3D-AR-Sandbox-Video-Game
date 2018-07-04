@@ -1,3 +1,5 @@
+var spectate = false;
+
 //**List of players who are currently PLAYING the game**
 //
 // Active clients
@@ -31,6 +33,7 @@ var moveBack = false;
 var moveLeft = false;
 var moveRight = false;
 var actionDelay = false;
+var player1IsDead = false;
 
 var charMeshIsSetup = false;
 
@@ -47,11 +50,8 @@ var block;
 var gotHit;
 var lavaDeath;
 var swing;
-var soundtrack;
-
-
-
-
+var respawn;
+var death;
 
 
 
@@ -77,16 +77,16 @@ function initializeBabylon(){
 function loadP1Sounds(){
 	block = new BABYLON.Sound("block", "serving/sounds/effects/block.wav", scene, null, {volume: 4});
 	gotHit = new BABYLON.Sound("gotHit", "/serving/sounds/effects/gotHit.wav", scene, null, {volume: 4});
-	lavaDeath = new BABYLON.Sound("lavaDeath", "/serving/sounds/effects/lavaDeath.wav", scene, null, {volume: 4});
+	lavaDeath = new BABYLON.Sound("lavaDeath", "/serving/sounds/effects/lavaDeath.wav", scene, null, {volume: 6});
 	swing = new BABYLON.Sound("swing", "/serving/sounds/effects/swing.wav", scene, null, {volume: 4});
 	respawn = new BABYLON.Sound("swing", "/serving/sounds/effects/respawn.wav", scene, null, {volume: 1});
-	death = new BABYLON.Sound("swing", "/serving/sounds/effects/death.wav", scene, null, {volume: 4});
+	death = new BABYLON.Sound("swing", "/serving/sounds/effects/death.wav", scene, null, {volume: 1});
 	
-	//song1 = new BABYLON.Sound("song1", "/serving/sounds/tracks/LightEmUp.mp3", scene, null, {volume: 0.5, autoplay:true});
-	song2 = new BABYLON.Sound("song2", "/serving/sounds/tracks/Mindwarp.mp3", scene, null, {volume: 0.5, autoplay: true});
+	song1 = new BABYLON.Sound("song1", "/serving/sounds/tracks/LightEmUp.mp3", scene, null, {volume: 0.5, autoplay:true});
+	song2 = new BABYLON.Sound("song2", "/serving/sounds/tracks/Mindwarp.mp3", scene, null, {volume: 0.5});
 	song3 = new BABYLON.Sound("song3", "/serving/sounds/tracks/Mirrorball.mp3", scene, null, {volume: 0.5});
 	
-	//song1.onended = function(){ song2.play();};
+	song1.onended = function(){ song2.play();};
 	song2.onended = function(){ song3.play();};
 	song3.onended = function(){ song1.play();};
 	
@@ -141,8 +141,6 @@ function createWorld(){
 	var lavaMaterial = new BABYLON.LavaMaterial("lava", scene);	
 	lavaMaterial.diffuseTexture = new BABYLON.Texture("serving/textures/lava.png", scene);
 	lavaMaterial.noiseTexture = new BABYLON.Texture("serving/textures/noise.png", scene); // ** BLANK NOISE TEXTURE **
-	//lavaMaterial.diffuseTexture.uScale = 7.0;
-	//lavaMaterial.diffuseTexture.vScale = 7.0;
 	lavaMaterial.diffuseTexture.uScale = 10.0;
 	lavaMaterial.diffuseTexture.vScale = 10.0;
 	lavaMaterial.speed = 0.06;
@@ -155,12 +153,6 @@ function createWorld(){
 	groundMat.specularColor = new BABYLON.Color3(0, 0, 0);
 	
 	var mountainMat = new BABYLON.StandardMaterial("mountainMat", scene);
-	//mountainMat.diffuseTexture = new BABYLON.Texture("serving/textures/11.png", scene);
-	//mountainMat.diffuseTexture.uScale = 1.0;
-	//mountainMat.diffuseTexture.vScale = 1.0;
-	//mountainMat.specularColor = new BABYLON.Color3(0, 0, 1);
-	//mountainMat.diffuseColor = new BABYLON.Color3(1, 1, 1);
-	//mountainMat.emissiveColor = new BABYLON.Color3(-0.5,-0.5,-0.5);
 	mountainMat.specularColor = new BABYLON.Color3(0, 0, 0);
 	mountainMat.diffuseColor = new BABYLON.Color3(0, 0, 0);
 	
@@ -170,6 +162,7 @@ function createWorld(){
 	cloud1Mat.diffuseTexture.uScale = 1.0;
 	cloud1Mat.diffuseTexture.vScale = 1.0;
 	cloud1Mat.emissiveColor = new BABYLON.Color3(0.9,0.9,0.9);
+	cloud1Mat.specularColor = new BABYLON.Color3(0,0,0);
 	
 	var cloud2Mat = new BABYLON.StandardMaterial("cloud2Mat", scene);
 	cloud2Mat.diffuseTexture = new BABYLON.Texture("serving/textures/cloud2.png", scene);
@@ -177,6 +170,7 @@ function createWorld(){
 	cloud2Mat.diffuseTexture.uScale = 1.0;
 	cloud2Mat.diffuseTexture.vScale = 1.0;
 	cloud2Mat.emissiveColor = new BABYLON.Color3(0.9,0.9,0.9);
+	cloud2Mat.specularColor = new BABYLON.Color3(0,0,0);
 	
 	var cloud3Mat = new BABYLON.StandardMaterial("cloud3Mat", scene);
 	cloud3Mat.diffuseTexture = new BABYLON.Texture("serving/textures/cloud3.png", scene);
@@ -184,6 +178,7 @@ function createWorld(){
 	cloud3Mat.diffuseTexture.uScale = 1.0;
 	cloud3Mat.diffuseTexture.vScale = 1.0;
 	cloud3Mat.emissiveColor = new BABYLON.Color3(0.9,0.9,0.9);
+	cloud3Mat.specularColor = new BABYLON.Color3(0,0,0);
 	
 	var cloud4Mat = new BABYLON.StandardMaterial("cloud4Mat", scene);
 	cloud4Mat.diffuseTexture = new BABYLON.Texture("serving/textures/cloud4.png", scene);
@@ -191,6 +186,7 @@ function createWorld(){
 	cloud4Mat.diffuseTexture.uScale = 1.0;
 	cloud4Mat.diffuseTexture.vScale = 1.0;
 	cloud4Mat.emissiveColor = new BABYLON.Color3(0.9,0.9,0.9);
+	cloud4Mat.specularColor = new BABYLON.Color3(0,0,0);
 	
 	var cloud5Mat = new BABYLON.StandardMaterial("cloud5Mat", scene);
 	cloud5Mat.diffuseTexture = new BABYLON.Texture("serving/textures/cloud5.png", scene);
@@ -198,6 +194,7 @@ function createWorld(){
 	cloud5Mat.diffuseTexture.uScale = 1.0;
 	cloud5Mat.diffuseTexture.vScale = 1.0;
 	cloud5Mat.emissiveColor = new BABYLON.Color3(0.9,0.9,0.9);
+	cloud5Mat.specularColor = new BABYLON.Color3(0,0,0);
 	
 	
 	///////  Polygon Defs!  ///////
@@ -346,12 +343,12 @@ function createWorld(){
 		
 	///////  Stone Jumping Pillars  ///////
 	var pillar1 = BABYLON.Mesh.CreateCylinder("pillar1", 7, 9, 9, 5, 1, scene, false);
-	pillar1.position = new BABYLON.Vector3(0.5, 3.5, -12);
+	pillar1.position = new BABYLON.Vector3(0, 3.5, -10.5);
 	pillar1.rotation = new BABYLON.Vector3(0, degToRad(18), 0);
 	pillar1.checkCollisions = true;
 
 	var pillar2 = BABYLON.Mesh.CreateCylinder("pillar2", 7, 9, 9, 5, 1, scene, false);
-	pillar2.position = new BABYLON.Vector3(-0.5, 3.5, 12);
+	pillar2.position = new BABYLON.Vector3(0, 3.5, 10.5);
 	pillar2.rotation = new BABYLON.Vector3(0, degToRad(-18), 0);
 	pillar2.checkCollisions = true;
 
@@ -411,8 +408,6 @@ function createWorld(){
 	
 	
 	///////  Lava  ///////
-	//var lava = BABYLON.Mesh.CreateDisc("lava", 175, 64, scene);
-	//lava.rotation.x = Math.PI/2;
 	var lava = BABYLON.Mesh.CreateGround("lava", 1200, 1200, 50, scene);
 	lava.position.y += -15;
 	lava.material = lavaMaterial;
@@ -474,13 +469,13 @@ function createWorld(){
 	
 	////////// SKY!! //////////
 	
-		//SUN
+		/*//SUN
 		var sunSize = 300;
 		var spriteManagerSun = new BABYLON.SpriteManager("spriteManagerSun", "serving/textures/sun.png", 2, 675, scene);
 		
 		var sun11 = new BABYLON.Sprite("sun11", spriteManagerSun);
 		sun11.position = new BABYLON.Vector3(-50, 625, -870);
-		sun11.size = sunSize;
+		sun11.size = 5;
 		var sun12 = new BABYLON.Sprite("sun12", spriteManagerSun);
 		sun12.position = new BABYLON.Vector3(-50, 625, -875);
 		sun12.size = sunSize;
@@ -489,14 +484,15 @@ function createWorld(){
 		engine.runRenderLoop(function () {
 			sun11.angle -= 0.001;
 			sun12.angle -= 0.001;
-		});
+		});*/
 		
 		
 		//CLOUDS
-		var rotRadius = 1100; //Is this radius 100% accurate?
-		var rotAxis = new BABYLON.Vector3(0, 1, .55);
-		var rotFlippedAxis = new BABYLON.Vector3(0, 1, -.55);
-		var rotSpeed = 0.75;
+		var rotRadius = 1; //Is this radius 100% accurate?
+		var rotAxis = new BABYLON.Vector3(0, 1, 0.55);
+		var rotFlippedAxis = new BABYLON.Vector3(0, 1, -0.55);
+		var pivotPoint = new BABYLON.Vector3(0, 2000, 0);
+		var rotSpeed = 10;
 		var cloudSize = 1.75;
 		var numClouds = 10;
 		var clouds = [];
@@ -566,6 +562,8 @@ function createWorld(){
 					cloud.flipped = true;
 				}
 				
+				
+				cloud.setPivotPoint(pivotPoint);
 				clouds.push(cloud);
 				
 				if(cType!=9){
@@ -889,24 +887,35 @@ function setupGUI(){
 
 function setupPlayer(nickname){
 	
-	respawnPlayer();
-	playerTrackingBoxSetup();
-	playerCharacterSetup();
-	movementControls();
-	attackingControls();
-	checkForDeath();
-	
 	// Clear spectator camera rotation
 	clearInterval(spectatorCameraRotate);
 	
-	// On click event, request pointer lock
-	canvas.addEventListener("click", function (evt) {
-		canvas.requestPointerLock = canvas.requestPointerLock || canvas.msRequestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock;
-		if (canvas.requestPointerLock) {
-			canvas.requestPointerLock();
-		}
-	});
 	
+	if(!spectate){
+		respawnPlayer();
+		playerTrackingBoxSetup();
+		playerCharacterSetup();
+		movementControls();
+		attackingControls();
+		checkForLavaDeath();
+		
+		// On click event, request pointer lock
+		canvas.addEventListener("click", function (evt) {
+			canvas.requestPointerLock = canvas.requestPointerLock || canvas.msRequestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock;
+			if (canvas.requestPointerLock) {
+				canvas.requestPointerLock();
+			}
+		});
+	}else{
+		spectateCamera();
+	}
+	
+	function spectateCamera(){
+		camera.dispose();
+		camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(0, 0, -10), scene);
+		camera.attachControl(canvas, true);
+		camera.speed = 3;
+	}
 	
 	function respawnPlayer(){
 		//Overwrite spectator camera with FPS cam!
@@ -950,6 +959,7 @@ function setupPlayer(nickname){
 		}else{
 			charMeshIsSetup = true;
 		}
+		
 	}
 	
 	function playerTrackingBoxSetup(){
@@ -1212,59 +1222,65 @@ function setupPlayer(nickname){
 		
 		//*onDown*
 		scene.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnKeyDownTrigger, function (evt) {
-			switch(evt.sourceEvent.keyCode){
-				//spacebar
-				case 32:
-					if(canJump){
-						playerJump();
-					}
-						break;
-				// W
-				case 87:
-						if(!moveForward){
-							moveForward = true;
-							updatePlayer1Animation(1, "wholeBodyAnimation");
+			// No action if player1 is dead
+			if(!player1IsDead){
+				switch(evt.sourceEvent.keyCode){
+					//spacebar
+					case 32:
+						if(canJump){
+							playerJump();
 						}
-						break;
-				// S
-				case 83:
-						if(!moveBack){
-							moveBack = true;
-							updatePlayer1Animation(2, "wholeBodyAnimation");
-						}
-						break;
-				// A
-				case 65:
-						moveLeft = true;
-						break;
-				// D
-				case 68:
-						moveRight = true;
-						break;
+							break;
+					// W
+					case 87:
+							if(!moveForward){
+								moveForward = true;
+								updatePlayer1Animation(1, "wholeBodyAnimation");
+							}
+							break;
+					// S
+					case 83:
+							if(!moveBack){
+								moveBack = true;
+								updatePlayer1Animation(2, "wholeBodyAnimation");
+							}
+							break;
+					// A
+					case 65:
+							moveLeft = true;
+							break;
+					// D
+					case 68:
+							moveRight = true;
+							break;
+				}
 			}
 		}));
 		
 		//*onUp*
 		scene.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnKeyUpTrigger, function (evt) {
-			switch(evt.sourceEvent.keyCode){
-				// W
-				case 87:
-						moveForward = false;
-						updatePlayer1Animation(0, "wholeBodyAnimation");
-						break;
-				// S
-				case 83:
-						moveBack = false;
-						updatePlayer1Animation(0, "wholeBodyAnimation");
-						break;
-				// A
-				case 65:
-						moveLeft = false;
-						break;
-				// D
-				case 68:
-						moveRight = false;
-						break;
+			// No action if player1 is dead
+			if(!player1IsDead){
+				switch(evt.sourceEvent.keyCode){
+					// W
+					case 87:
+							moveForward = false;
+							updatePlayer1Animation(0, "wholeBodyAnimation");
+							break;
+					// S
+					case 83:
+							moveBack = false;
+							updatePlayer1Animation(0, "wholeBodyAnimation");
+							break;
+					// A
+					case 65:
+							moveLeft = false;
+							break;
+					// D
+					case 68:
+							moveRight = false;
+							break;
+				}
 			}
 		}));
 		
@@ -1410,12 +1426,18 @@ function setupPlayer(nickname){
 		
 		//	DOWN
 		canvas.addEventListener('pointerdown', function (e){
+			// No action if player1 is dead
+			if(!player1IsDead){
 				whichButton(e, false);
+			}
 		});
 		
 		//	UP
 		canvas.addEventListener('pointerup', function (e){
+			// No action if player1 is dead
+			if(!player1IsDead){
 				whichButton(e, true);
+			}
 		});
 
 		var whichButton = function (e, isMouseUp) {
@@ -1581,33 +1603,12 @@ function setupPlayer(nickname){
 		
 	}
 	
-	function checkForDeath(){
+	function checkForLavaDeath(){
 	
 		engine.runRenderLoop(function () {
 			// DEATH
 			if(camera.position.y<-17){
-				//Save location of death
-				var location = camera.position;
-				
-				//Package data for broadcast
-				var data = {};
-				data.location = location;
-				data.userID = mySocketId;
-				
-				//Tell others of your death
-				socket.emit('playerDeath', data);
-				
-				//Destroy FP camera
-				camera.dispose();
-			
-				//Death camera
-				camera = new BABYLON.ArcRotateCamera("myCamera", 0, 0.5, 70, new BABYLON.Vector3(location.x, location.y, location.z), scene);
-				
-				//Death effect
-				deathParticles(location);
-				
-				//Respawn after 10 seconds!
-				setTimeout(respawn, 10000);	
+				player1Death(true);
 			}
 		});
 		
@@ -2193,6 +2194,47 @@ function deathParticles(location){
 		
 	}, 3000);
 	
+}
+function player1Death(isLavaDeath){
+	
+	// Disable P1 actions
+	player1IsDead = true;
+	
+	// Reset P1 vars
+	moveForward = false;
+	moveBack = false;
+	moveLeft = false;
+	moveRight = false;
+	actionDelay = false;
+	
+	//Save location of death
+	var location = camera.position;
+	
+	//Package data for broadcast
+	var data = {};
+	data.location = location;
+	data.userID = mySocketId;
+	
+	//Tell others of your death
+	socket.emit('playerDeath', data);
+	
+	//Destroy FP camera
+	camera.dispose();
+
+	//Death camera
+	camera = new BABYLON.ArcRotateCamera("myCamera", 0, 0.5, 70, new BABYLON.Vector3(location.x, location.y, location.z), scene);
+	spectatorCameraRotate = setInterval(function(){camera.alpha += 0.001;}, 10);
+	
+	//Death Sound
+	death.play();
+	
+	if(isLavaDeath){
+		//deathParticles(location);
+		lavaDeath.play();
+	}
+	
+	//Respawn after 10 seconds!
+	setTimeout(respawn, 10000);	
 }
 function randomNumber(min,max){
 	return Math.random() * (max-min)+min;
