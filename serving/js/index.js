@@ -60,6 +60,28 @@ respawnPoints[1] = new BABYLON.Vector3(-43,3,-39);
 respawnPoints[2] = new BABYLON.Vector3(-46,3,40);
 respawnPoints[3] = new BABYLON.Vector3(33,3,39);
 
+// Animation ranges
+var idleS = 471;
+var idleE = 670;
+var runS = 301;
+var runE = 360;
+var lAttackS = 101;
+var lAttackE = 175;
+var rAttackS = 201;
+var rAttackE = 275;
+var uAttackS = 371;
+var uAttackE = 445;
+var dAttackS = 0;
+var dAttackE = 75;
+var lBlockS = 181;
+var lBlockE = 193;
+var rBlockS = 281;
+var rBlockE = 293;
+var uBlockS = 451;
+var uBlockE = 463;
+var dBlockS = 81;
+var dBlockE = 93;
+
 
 function initializeBabylon(){
 	canvas = document.getElementById("gameCanvas");
@@ -831,7 +853,7 @@ function setupSocketIO(){
 			players[uID].armProxy.armLock = false;
 			
 			// Start idle animation
-			scene.beginAnimation(playerSkeleton, 261, 360, true, 1.0);
+			scene.beginAnimation(playerSkeleton, idleS, idleE, true, 1.0);
 			
 		});
 	}
@@ -1085,26 +1107,26 @@ function setupPlayer(nickname){
 								switch(obj['prevArmAnimation']) {
 									// Up
 									case 1:
-										startFrame = 230;
-										endFrame = 240;
+										startFrame = uAttackE-24;
+										endFrame = uAttackE;
 										animationCode = setCharAt(animationCode, 1, '1');
 										break;
 									// Down
 									case 2:
-										startFrame = 20;
-										endFrame = 30;
+										startFrame = dAttackE-24;
+										endFrame = dAttackE;
 										animationCode = setCharAt(animationCode, 1, '2');
 										break;
 									// Left
 									case 3:
-										startFrame = 70;
-										endFrame = 80;
+										startFrame = lAttackE-24;
+										endFrame = lAttackE;
 										animationCode = setCharAt(animationCode, 1, '3');
 										break;
 									// Right
 									case 4:
-										startFrame = 120;
-										endFrame = 130;
+										startFrame = rAttackE-24;
+										endFrame = rAttackE;
 										animationCode = setCharAt(animationCode, 1, '4');
 										break;
 								}
@@ -1147,10 +1169,10 @@ function setupPlayer(nickname){
 			// Set animation events
 
 			// 1. arm prep
-			var prepEventR = new BABYLON.AnimationEvent(119, function() { players[mySocketId].armProxy.armPrepped = true;}, true);
-			var prepEventL = new BABYLON.AnimationEvent(69, function() { players[mySocketId].armProxy.armPrepped = true;}, true);
-			var prepEventD = new BABYLON.AnimationEvent(19, function() { players[mySocketId].armProxy.armPrepped = true;}, true);
-			var prepEventU = new BABYLON.AnimationEvent(229, function() { players[mySocketId].armProxy.armPrepped = true; }, true);
+			var prepEventR = new BABYLON.AnimationEvent(rAttackE-26, function() { players[mySocketId].armProxy.armPrepped = true;}, true);
+			var prepEventL = new BABYLON.AnimationEvent(lAttackE-26, function() { players[mySocketId].armProxy.armPrepped = true;}, true);
+			var prepEventD = new BABYLON.AnimationEvent(dAttackE-26, function() { players[mySocketId].armProxy.armPrepped = true;}, true);
+			var prepEventU = new BABYLON.AnimationEvent(uAttackE-26, function() { players[mySocketId].armProxy.armPrepped = true; }, true);
 			
 			playerSkeleton.bones[14].animations[0].addEvent(prepEventR);
 			playerSkeleton.bones[14].animations[0].addEvent(prepEventL);
@@ -1158,10 +1180,10 @@ function setupPlayer(nickname){
 			playerSkeleton.bones[14].animations[0].addEvent(prepEventD);
 			
 			// 2. arm unprep
-			var unprepEventR = new BABYLON.AnimationEvent(120, function() { players[mySocketId].armProxy.armPrepped = false; players[mySocketId].attackCheckInterval = setInterval(checkAttackIntersection,50); swing.play();}, true);
-			var unprepEventL = new BABYLON.AnimationEvent(70, function() { players[mySocketId].armProxy.armPrepped = false; players[mySocketId].attackCheckInterval = setInterval(checkAttackIntersection,50); swing.play();}, true);
-			var unprepEventD = new BABYLON.AnimationEvent(20, function() { players[mySocketId].armProxy.armPrepped = false; players[mySocketId].attackCheckInterval = setInterval(checkAttackIntersection,50); swing.play();}, true);
-			var unprepEventU = new BABYLON.AnimationEvent(230, function() { players[mySocketId].armProxy.armPrepped = false; players[mySocketId].attackCheckInterval = setInterval(checkAttackIntersection,50); swing.play();}, true);
+			var unprepEventR = new BABYLON.AnimationEvent(rAttackE-24, function() { players[mySocketId].armProxy.armPrepped = false; players[mySocketId].attackCheckInterval = setInterval(checkAttackIntersection,50); swing.play();}, true);
+			var unprepEventL = new BABYLON.AnimationEvent(lAttackE-24, function() { players[mySocketId].armProxy.armPrepped = false; players[mySocketId].attackCheckInterval = setInterval(checkAttackIntersection,50); swing.play();}, true);
+			var unprepEventD = new BABYLON.AnimationEvent(dAttackE-24, function() { players[mySocketId].armProxy.armPrepped = false; players[mySocketId].attackCheckInterval = setInterval(checkAttackIntersection,50); swing.play();}, true);
+			var unprepEventU = new BABYLON.AnimationEvent(uAttackE-24, function() { players[mySocketId].armProxy.armPrepped = false; players[mySocketId].attackCheckInterval = setInterval(checkAttackIntersection,50); swing.play();}, true);
 			
 			playerSkeleton.bones[14].animations[0].addEvent(unprepEventR);
 			playerSkeleton.bones[14].animations[0].addEvent(unprepEventL);
@@ -1169,10 +1191,10 @@ function setupPlayer(nickname){
 			playerSkeleton.bones[14].animations[0].addEvent(unprepEventU);
 			
 			// 3. arm lock
-			var lockEventR = new BABYLON.AnimationEvent(101, function() { players[mySocketId].armProxy.armLock = true;}, true);
-			var lockEventL = new BABYLON.AnimationEvent(51, function() { players[mySocketId].armProxy.armLock = true; }, true);
-			var lockEventD = new BABYLON.AnimationEvent(0, function() { players[mySocketId].armProxy.armLock = true; }, true);
-			var lockEventU = new BABYLON.AnimationEvent(211, function() { players[mySocketId].armProxy.armLock = true; }, true);
+			var lockEventR = new BABYLON.AnimationEvent(rAttackS, function() { players[mySocketId].armProxy.armLock = true;}, true);
+			var lockEventL = new BABYLON.AnimationEvent(lAttackS, function() { players[mySocketId].armProxy.armLock = true; }, true);
+			var lockEventD = new BABYLON.AnimationEvent(dAttackS, function() { players[mySocketId].armProxy.armLock = true; }, true);
+			var lockEventU = new BABYLON.AnimationEvent(uAttackS, function() { players[mySocketId].armProxy.armLock = true; }, true);
 			
 			playerSkeleton.bones[14].animations[0].addEvent(lockEventR);
 			playerSkeleton.bones[14].animations[0].addEvent(lockEventL);
@@ -1180,10 +1202,10 @@ function setupPlayer(nickname){
 			playerSkeleton.bones[14].animations[0].addEvent(lockEventD);
 			
 			// 4. arm unlock
-			var unlockEventR = new BABYLON.AnimationEvent(130, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval); players[mySocketId].swingComplete = false;}, true);
-			var unlockEventL = new BABYLON.AnimationEvent(80, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval); players[mySocketId].swingComplete = false;}, true);
-			var unlockEventD = new BABYLON.AnimationEvent(30, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval); players[mySocketId].swingComplete = false;}, true);
-			var unlockEventU = new BABYLON.AnimationEvent(240, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval); players[mySocketId].swingComplete = false;}, true);
+			var unlockEventR = new BABYLON.AnimationEvent(rAttackE, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval); players[mySocketId].swingComplete = false;}, true);
+			var unlockEventL = new BABYLON.AnimationEvent(lAttackE, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval); players[mySocketId].swingComplete = false;}, true);
+			var unlockEventD = new BABYLON.AnimationEvent(dAttackE, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval); players[mySocketId].swingComplete = false;}, true);
+			var unlockEventU = new BABYLON.AnimationEvent(uAttackE, function() { players[mySocketId].armProxy.armLock = false; clearInterval(players[mySocketId].attackCheckInterval); players[mySocketId].swingComplete = false;}, true);
 			
 			playerSkeleton.bones[14].animations[0].addEvent(unlockEventR);
 			playerSkeleton.bones[14].animations[0].addEvent(unlockEventL);
@@ -1212,7 +1234,7 @@ function setupPlayer(nickname){
 			}, 20);
 			
 			// Start idle animation
-			scene.beginAnimation(playerSkeleton, 261, 360, true, 1.0);
+			scene.beginAnimation(playerSkeleton, idleS, idleE, true, 1.0);
 		});
 		
 	}
@@ -1685,23 +1707,23 @@ function updatePlayer1Animation(newAnimationNum, animationType){
 			// 0) Idle
 			if(newAnimationNum==0 && !((moveForward&&!moveBack) || (!moveForward&&moveBack)) || (moveBack&&moveForward)){
 				players[mySocketId].curBodyAnimation = 0;
-				startFrame = 261;
-				endFrame = 360;
+				startFrame = idleS;
+				endFrame = idleE;
 				loop = true;
 				data.animationCode = setCharAt(data.animationCode, 0, '0');
 				
 			// 1) Run
 			}else if(newAnimationNum==1 || (newAnimationNum==0 && (moveForward&&!moveBack))){
 				players[mySocketId].curBodyAnimation = 1;
-				startFrame = 175;
-				endFrame = 199;	
+				startFrame = runS;
+				endFrame = runE;	
 				loop = true;				
 				data.animationCode = setCharAt(data.animationCode, 0, '1');
 			// 2) Back peddle
 			}else if(newAnimationNum==2 || (newAnimationNum==0 && (!moveForward&&moveBack))){
 				players[mySocketId].curBodyAnimation = 2;
-				startFrame = 199;
-				endFrame = 175;
+				startFrame = runE;
+				endFrame = runS;
 				loop = true;
 				data.animationCode = setCharAt(data.animationCode, 0, '2');
 			}
@@ -1746,53 +1768,53 @@ function updatePlayer1Animation(newAnimationNum, animationType){
 				switch(players[mySocketId].curArmAnimation) {
 					// Up Swing
 					case 1:
-						startFrame = 230;
-						endFrame = 240;
+						startFrame = uAttackE-24;
+						endFrame = uAttackE;
 						data.animationCode = setCharAt(data.animationCode, 1, '1');
 						break;
 					// Down Swing
 					case 2:
-						startFrame = 20;
-						endFrame = 30;
+						startFrame = dAttackE-24;
+						endFrame = dAttackE;
 						data.animationCode = setCharAt(data.animationCode, 1, '2');
 						break;
 					// Left Swing
 					case 3:
-						startFrame = 70;
-						endFrame = 80;
+						startFrame = lAttackE-24;
+						endFrame = lAttackE;
 						data.animationCode = setCharAt(data.animationCode, 1, '3');
 						break;
 					// Right Swing
 					case 4:
-						startFrame = 120;
-						endFrame = 130;
+						startFrame = rAttackE-24;
+						endFrame = rAttackE;
 						data.animationCode = setCharAt(data.animationCode, 1, '4');
 						break;
 					// Up Block Stop
 					case 5:
-						startFrame = 255;
-						endFrame = 255;
+						startFrame = uBlockE;
+						endFrame = uBlockE;
 						data.animationCode = setCharAt(data.animationCode, 1, '5');
 						stopBlock = true;
 						break;
 					// Down Block Stop
 					case 6:
-						startFrame = 45;
-						endFrame = 45;
+						startFrame = dBlockE;
+						endFrame = dBlockE;
 						data.animationCode = setCharAt(data.animationCode, 1, '6');
 						stopBlock = true;
 						break;
 					// Right Block Stop
 					case 7:
-						startFrame = 145;
-						endFrame = 145;
+						startFrame = rBlockE;
+						endFrame = rBlockE;
 						data.animationCode = setCharAt(data.animationCode, 1, '7');
 						stopBlock = true;
 						break;
 					// Left Block Stop
 					case 8:
-						startFrame = 95;
-						endFrame = 95;
+						startFrame = lBlockE;
+						endFrame = lBlockE;
 						data.animationCode = setCharAt(data.animationCode, 1, '8');
 						stopBlock = true;
 						break;
@@ -1822,64 +1844,64 @@ function updatePlayer1Animation(newAnimationNum, animationType){
 			// 1) Up Attack
 			}else if(newAnimationNum==1){
 				players[mySocketId].curArmAnimation = 1;
-				startFrame = 211;
-				endFrame = 230;
+				startFrame = uAttackS;
+				endFrame = uAttackE-25;
 				data.animationCode = setCharAt(data.animationCode, 0, '1');
 				loop = true;
 				
 			// 2) Down Attack
 			}else if(newAnimationNum==2){
 				players[mySocketId].curArmAnimation = 2;
-				startFrame = 0;
-				endFrame = 20;
+				startFrame = dAttackS;
+				endFrame = dAttackE-25;
 				data.animationCode = setCharAt(data.animationCode, 0, '2');
 				loop = true;
 				
 			// 3) Left Attack
 			}else if(newAnimationNum==3){
 				players[mySocketId].curArmAnimation = 3;
-				startFrame = 51;
-				endFrame = 70;
+				startFrame = lAttackS;
+				endFrame = lAttackE-25;
 				data.animationCode = setCharAt(data.animationCode, 0, '3');
 				loop = true;
 				
 			// 4) Right Attack
 			}else if(newAnimationNum==4){
 				players[mySocketId].curArmAnimation = 4;
-				startFrame = 101;
-				endFrame = 120;
+				startFrame = rAttackS;
+				endFrame = rAttackE-25;
 				data.animationCode = setCharAt(data.animationCode, 0, '4');
 				loop = true;
 				
 			// 5) Up Block
 			}else if(newAnimationNum==5){
 				players[mySocketId].curArmAnimation = 5;
-				startFrame = 251;
-				endFrame = 255;
+				startFrame = uBlockS;
+				endFrame = uBlockE;
 				data.animationCode = setCharAt(data.animationCode, 0, '5');
 				loop = true;
 				
 			// 6) Down Block
 			}else if(newAnimationNum==6){
 				players[mySocketId].curArmAnimation = 6;
-				startFrame = 41;
-				endFrame = 45;
+				startFrame = dBlockS;
+				endFrame = dBlockE;
 				data.animationCode = setCharAt(data.animationCode, 0, '6');
 				loop = true;
 				
 			// 7) Right Block
 			}else if(newAnimationNum==7){
 				players[mySocketId].curArmAnimation = 7;
-				startFrame = 141;
-				endFrame = 145;
+				startFrame = rBlockS;
+				endFrame = rBlockE;
 				data.animationCode = setCharAt(data.animationCode, 0, '7');
 				loop = true;
 				
 			// 8) Left Block
 			}else if(newAnimationNum==8){
 				players[mySocketId].curArmAnimation = 8;
-				startFrame = 91;
-				endFrame = 95;
+				startFrame = lBlockS;
+				endFrame = lBlockE;
 				data.animationCode = setCharAt(data.animationCode, 0, '8');
 				loop = true;
 			}
@@ -1911,22 +1933,22 @@ function updateOtherPlayersAnimation(animationCode, animationType, userID){
 		// 0) Idle
 		if(animationCode[0]=='0'){
 			players[userID].curBodyAnimation = 0;
-			startFrame = 261;
-			endFrame = 360;
+			startFrame = idleS;
+			endFrame = idleE;
 			loop = true;
 			
 		// 1) Run
 		}else if(animationCode[0]=='1'){
 			players[userID].curBodyAnimation = 1;
-			startFrame = 175;
-			endFrame = 199;	
+			startFrame = runS;
+			endFrame = runE;	
 			loop = true;				
 			
 		// 2) Back peddle
 		}else if(animationCode[0]=='2'){
 			players[userID].curBodyAnimation = 2;
-			startFrame = 199;
-			endFrame = 175;
+			startFrame = runE;
+			endFrame = runS;
 			loop = true;
 		}
 		
@@ -1963,43 +1985,43 @@ function updateOtherPlayersAnimation(animationCode, animationType, userID){
 			switch(animationCode[1]) {
 				// Up Swing
 				case '1':
-					startFrame = 230;
-					endFrame = 240;
+					startFrame = uAttackE-24;
+					endFrame = uAttackE;
 					break;
 				// Down Swing
 				case '2':
-					startFrame = 20;
-					endFrame = 30;
+					startFrame = dAttackE-24;
+					endFrame = dAttackE;
 					break;
 				// Left Swing
 				case '3':
-					startFrame = 70;
-					endFrame = 80;
+					startFrame = lAttackE-24;
+					endFrame = lAttackE;
 					break;
 				// Right Swing
 				case '4':
-					startFrame = 120;
-					endFrame = 130;
+					startFrame = rAttackE-24;
+					endFrame = rAttackE;
 					break;
 				// Up Block Stop
 				case '5':
-					startFrame = 255;
-					endFrame = 255;
+					startFrame = uBlockE;
+					endFrame = uBlockE;
 					break;
 				// Down Block Stop
 				case '6':
-					startFrame = 45;
-					endFrame = 45;
+					startFrame = dBlockE;
+					endFrame = dBlockE;
 					break;
 				// Right Block Stop
 				case '7':
-					startFrame = 145;
-					endFrame = 145;
+					startFrame = rBlockE;
+					endFrame = rBlockE;
 					break;
 				// Left Block Stop
 				case '8':
-					startFrame = 95;
-					endFrame = 95;
+					startFrame = lBlockE;
+					endFrame = lBlockE;
 					break;
 			}
 			
@@ -2009,59 +2031,57 @@ function updateOtherPlayersAnimation(animationCode, animationType, userID){
 		// 1) Up Attack
 		}else if(animationCode[0]=='1'){
 			players[userID].curArmAnimation = 1;
-			startFrame = 211;
-			endFrame = 230;
-			
+			startFrame = uAttackS;
+			endFrame = uAttackE-25;
 			loop = true;
 			
 		// 2) Down Attack
 		}else if(animationCode[0]=='2'){
 			players[userID].curArmAnimation = 2;
-			startFrame = 0;
-			endFrame = 20;
-			
+			startFrame = dAttackS;
+			endFrame = dAttackE-25;
 			loop = true;
 			
 		// 3) Left Attack
 		}else if(animationCode[0]=='3'){
 			players[userID].curArmAnimation = 3;
-			startFrame = 51;
-			endFrame = 70;
+			startFrame = lAttackS;
+			endFrame = lAttackE-25;
 			loop = true;
 			
 		// 4) Right Attack
 		}else if(animationCode[0]=='4'){
 			players[userID].curArmAnimation = 4;
-			startFrame = 101;
-			endFrame = 120;
+			startFrame = rAttackS;
+			endFrame = rAttackE-25;
 			loop = true;
 			
 		// 5) Up Block
 		}else if(animationCode[0]=='5'){
 			players[userID].curArmAnimation = 5;
-			startFrame = 251;
-			endFrame = 255;
+			startFrame = uBlockS;
+			endFrame = uBlockE;
 			loop = true;
 			
 		// 6) Down Block
 		}else if(animationCode[0]=='6'){
 			players[userID].curArmAnimation = 6;
-			startFrame = 41;
-			endFrame = 45;
+			startFrame = dBlockS;
+			endFrame = dBlockE;
 			loop = true;
 			
 		// 7) Right Block
 		}else if(animationCode[0]=='7'){
 			players[userID].curArmAnimation = 7;
-			startFrame = 141;
-			endFrame = 145;
+			startFrame = rBlockS;
+			endFrame = rBlockE;
 			loop = true;
 			
 		// 8) Left Block
 		}else if(animationCode[0]=='8'){
 			players[userID].curArmAnimation = 8;
-			startFrame = 91;
-			endFrame = 95;
+			startFrame = lBlockS;
+			endFrame = lBlockE;
 			loop = true;
 		}
 		
