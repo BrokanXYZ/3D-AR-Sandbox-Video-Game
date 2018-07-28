@@ -87,7 +87,6 @@ var dBlockE = 93;
 //Entry point
 document.addEventListener("DOMContentLoaded", function() {
 	initializeBabylon();
-	loadAudio();
     createWorld();
 	setupSpectator();
 	setupSocketIO();
