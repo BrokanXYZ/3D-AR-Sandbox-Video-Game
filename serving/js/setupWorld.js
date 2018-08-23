@@ -238,7 +238,7 @@ function initializeBabylon(){
 		death = new BABYLON.Sound("death", task.data, scene, null, {volume: 1});
 	}
 	
-	var audioTask7 = assetsManager.addBinaryFileTask("song1AudioTask", "serving/sounds/tracks/LightEmUp.mp3");
+	/*var audioTask7 = assetsManager.addBinaryFileTask("song1AudioTask", "serving/sounds/tracks/LightEmUp.mp3");
 	audioTask7.onSuccess = function (task) {
 		song1 = new BABYLON.Sound("song1", task.data, scene, null, {volume: 0.5, autoplay:true});
 		song1.onended = function(){ song2.play();};
@@ -254,7 +254,7 @@ function initializeBabylon(){
 	audioTask9.onSuccess = function (task) {
 		song3 = new BABYLON.Sound("song3", task.data, scene, null, {volume: 0.5});
 		song3.onended = function(){ song1.play();};
-	}
+	}*/
 	
 	
 	

@@ -2,58 +2,60 @@
 //Start game functions (called from index.hmtl)
 function setupGUI(){
 	
-	var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-	
-	///////  HP! (max = 400)  ///////
-	var noHpBar = new BABYLON.GUI.Rectangle();
-	noHpBar.width = "400px";
-	noHpBar.height = "35px";
-	noHpBar.color = "Black";
-	noHpBar.background = "Black";
-	noHpBar.thickness = 5;
-	noHpBar.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
-	noHpBar.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
-	noHpBar.top = -60;
-	noHpBar.left = -15;
-	advancedTexture.addControl(noHpBar);    
+	// No HUD for spectators
+	if(!spectate){
+		var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+		
+		///////  HP! (max = 400)  ///////
+		var noHpBar = new BABYLON.GUI.Rectangle();
+		noHpBar.width = "400px";
+		noHpBar.height = "35px";
+		noHpBar.color = "Black";
+		noHpBar.background = "Black";
+		noHpBar.thickness = 5;
+		noHpBar.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+		noHpBar.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+		noHpBar.top = -60;
+		noHpBar.left = -15;
+		advancedTexture.addControl(noHpBar);    
 
-	hpBar = new BABYLON.GUI.Rectangle();
-	hpBar.width = "400px";	////////////	  *Player's health*
-	hpBar.height = "35px";
-	hpBar.color = "Red";
-	hpBar.background = "Red";
-	hpBar.thickness = 5;
-	hpBar.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
-	hpBar.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
-	hpBar.top = -60;
-	hpBar.left = -15;
-	advancedTexture.addControl(hpBar);
-	
-	///////  Stamina! (max = 400)  ///////
-	var noStamBar = new BABYLON.GUI.Rectangle();
-	noStamBar.width = "400px";
-	noStamBar.height = "25px";
-	noStamBar.color = "Black";
-	noStamBar.background = "Black";
-	noStamBar.thickness = 5;
-	noStamBar.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
-	noStamBar.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
-	noStamBar.top = -15;
-	noStamBar.left = -15;
-	advancedTexture.addControl(noStamBar);    
+		hpBar = new BABYLON.GUI.Rectangle();
+		hpBar.width = "400px";	////////////	  *Player's health*
+		hpBar.height = "35px";
+		hpBar.color = "Red";
+		hpBar.background = "Red";
+		hpBar.thickness = 5;
+		hpBar.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+		hpBar.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+		hpBar.top = -60;
+		hpBar.left = -15;
+		advancedTexture.addControl(hpBar);
+		
+		///////  Stamina! (max = 400)  ///////
+		var noStamBar = new BABYLON.GUI.Rectangle();
+		noStamBar.width = "400px";
+		noStamBar.height = "25px";
+		noStamBar.color = "Black";
+		noStamBar.background = "Black";
+		noStamBar.thickness = 5;
+		noStamBar.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+		noStamBar.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+		noStamBar.top = -15;
+		noStamBar.left = -15;
+		advancedTexture.addControl(noStamBar);    
 
-	stamBar = new BABYLON.GUI.Rectangle();
-	stamBar.width = "400px";	////////////	  *Player's stamina*
-	stamBar.height = "25px";
-	stamBar.color = "Green";
-	stamBar.background = "Green";
-	stamBar.thickness = 5;
-	stamBar.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
-	stamBar.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
-	stamBar.top = -15;
-	stamBar.left = -15;
-	advancedTexture.addControl(stamBar);
-	
+		stamBar = new BABYLON.GUI.Rectangle();
+		stamBar.width = "400px";	////////////	  *Player's stamina*
+		stamBar.height = "25px";
+		stamBar.color = "Green";
+		stamBar.background = "Green";
+		stamBar.thickness = 5;
+		stamBar.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+		stamBar.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+		stamBar.top = -15;
+		stamBar.left = -15;
+		advancedTexture.addControl(stamBar);
+	}
 }
 
 function setupPlayer(nickname){
@@ -622,19 +624,33 @@ function setupPlayer(nickname){
 				switch (btnCode) {
 					//Left Click
 					case 0:
+					
+						if(isMouseUp){
+							console.log(players[mySocketId].curArmAnimation);
+						}
+						
 						// If mouse is up and the player has not already swung
 						if(isMouseUp && players[mySocketId].curArmAnimation != 0){
 							// Swing!
 							updatePlayer1Animation(0, "armAnimation");
+							
+							console.log("SWING");
+							
 						// If the player's arm is not already locked
 						}else if(!players[mySocketId].armProxy.armLock){
 							attack();
+							
+							console.log("ATTACK");
 						}
+						
+						
+						
+						//console.log("down");
 						break;
 						
 					//Middle Button Click
 					case 1:
-						//console.log('Middle button clicked.');
+						console.log(players[mySocketId].curArmAnimation);
 						break;
 						
 					//Right Click
