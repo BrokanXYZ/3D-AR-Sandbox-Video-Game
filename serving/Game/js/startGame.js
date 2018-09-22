@@ -170,7 +170,7 @@ function setupPlayer(nickname){
 	
 	function playerCharacterSetup(){
 		
-		BABYLON.SceneLoader.ImportMesh("", "/serving/meshes/", "player.babylon", scene, function (newMeshes, particleSystems, skeletons) {
+		BABYLON.SceneLoader.ImportMesh("", "/serving/Game/meshes/", "player.babylon", scene, function (newMeshes, particleSystems, skeletons) {
 		
 			//Imported mesh results
 			playerMesh = newMeshes[0];

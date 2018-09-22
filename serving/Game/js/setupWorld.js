@@ -42,14 +42,14 @@ function initializeBabylon(){
 	stoneMat = new BABYLON.StandardMaterial("stoneMat", scene);
 	stoneMat.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
 	
-	var textureTask1 = assetsManager.addTextureTask("stoneDiffuseTexture", "serving/textures/stone.png");
+	var textureTask1 = assetsManager.addTextureTask("stoneDiffuseTexture", "serving/Game/textures/stone.png");
 	textureTask1.onSuccess = function(task) {
 		stoneMat.diffuseTexture = task.texture;
 		stoneMat.diffuseTexture.uScale = 8.0;
 		stoneMat.diffuseTexture.vScale = 5.0;
 	}
 	
-	var textureTask2 = assetsManager.addTextureTask("stoneBumpTexture", "serving/textures/bumpMap.png");
+	var textureTask2 = assetsManager.addTextureTask("stoneBumpTexture", "serving/Game/textures/bumpMap.png");
 	textureTask2.onSuccess = function(task) {
 		stoneMat.bumpTexture = task.texture;
 		stoneMat.bumpTexture.uScale = 8.0;
@@ -60,7 +60,7 @@ function initializeBabylon(){
 	smoothStoneMat = new BABYLON.StandardMaterial("smoothStoneMat", scene);
 	smoothStoneMat.specularColor = new BABYLON.Color3(0, 0, 0);
 	
-	var textureTask3 = assetsManager.addTextureTask("smoothStoneDiffuseTexture", "serving/textures/smoothStone.png");
+	var textureTask3 = assetsManager.addTextureTask("smoothStoneDiffuseTexture", "serving/Game/textures/smoothStone.png");
 	textureTask3.onSuccess = function(task) {
 		smoothStoneMat.diffuseTexture = task.texture;
 		smoothStoneMat.diffuseTexture.uScale = 2.0;
@@ -71,7 +71,7 @@ function initializeBabylon(){
 	smoothWoodMat = new BABYLON.StandardMaterial("smoothWoodMat", scene);
 	smoothWoodMat.specularColor = new BABYLON.Color3(0, 0, 0);
 	
-	var textureTask4 = assetsManager.addTextureTask("smoothWoodDiffuseTexture", "serving/textures/smoothWood.png");
+	var textureTask4 = assetsManager.addTextureTask("smoothWoodDiffuseTexture", "serving/Game/textures/smoothWood.png");
 	textureTask4.onSuccess = function(task) {
 		smoothWoodMat.diffuseTexture = task.texture;
 		smoothWoodMat.diffuseTexture.uScale = 3.0;
@@ -82,7 +82,7 @@ function initializeBabylon(){
 	bridgeMat = new BABYLON.StandardMaterial("bridgeMat", scene);
 	bridgeMat.specularColor = new BABYLON.Color3(0, 0, 0);
 	
-	var textureTask5 = assetsManager.addTextureTask("bridgeDiffuseTexture", "serving/textures/bridge.png");
+	var textureTask5 = assetsManager.addTextureTask("bridgeDiffuseTexture", "serving/Game/textures/bridge.png");
 	textureTask5.onSuccess = function(task) {
 		bridgeMat.diffuseTexture = task.texture;
 		bridgeMat.diffuseTexture.uScale = 8.0;
@@ -94,14 +94,14 @@ function initializeBabylon(){
 	lavaMaterial.speed = 0.06;
 	lavaMaterial.fogColor = new BABYLON.Color3(1, 0, 0);	
 	
-	var textureTask6 = assetsManager.addTextureTask("lavaDiffuseTexture", "serving/textures/lava.png");
+	var textureTask6 = assetsManager.addTextureTask("lavaDiffuseTexture", "serving/Game/textures/lava.png");
 	textureTask6.onSuccess = function(task) {
 		lavaMaterial.diffuseTexture = task.texture;
 		lavaMaterial.diffuseTexture.uScale = 10.0;
 		lavaMaterial.diffuseTexture.vScale = 10.0;
 	}
 	
-	var textureTask7 = assetsManager.addTextureTask("lavaNoiseTexture", "serving/textures/noise.png");
+	var textureTask7 = assetsManager.addTextureTask("lavaNoiseTexture", "serving/Game/textures/noise.png");
 	textureTask7.onSuccess = function(task) {
 		lavaMaterial.noiseTexture = task.texture;
 	}
@@ -110,7 +110,7 @@ function initializeBabylon(){
 	groundMat = new BABYLON.StandardMaterial("groundMat", scene);	
 	groundMat.specularColor = new BABYLON.Color3(0, 0, 0);
 	
-	var textureTask8 = assetsManager.addTextureTask("groundDiffuseTexture", "serving/textures/sand.png");
+	var textureTask8 = assetsManager.addTextureTask("groundDiffuseTexture", "serving/Game/textures/sand.png");
 	textureTask8.onSuccess = function(task) {
 		groundMat.diffuseTexture = task.texture;
 		groundMat.diffuseTexture.uScale = 15.0;
@@ -127,7 +127,7 @@ function initializeBabylon(){
 	cloud1Mat.emissiveColor = new BABYLON.Color3(0.9,0.9,0.9);
 	cloud1Mat.specularColor = new BABYLON.Color3(0,0,0);
 	
-	var textureTask9 = assetsManager.addTextureTask("cloud1DiffuseTexture", "serving/textures/cloud1.png");
+	var textureTask9 = assetsManager.addTextureTask("cloud1DiffuseTexture", "serving/Game/textures/cloud1.png");
 	textureTask9.onSuccess = function(task) {
 		cloud1Mat.diffuseTexture = task.texture;
 		cloud1Mat.diffuseTexture.hasAlpha = true;
@@ -140,7 +140,7 @@ function initializeBabylon(){
 	cloud2Mat.emissiveColor = new BABYLON.Color3(0.9,0.9,0.9);
 	cloud2Mat.specularColor = new BABYLON.Color3(0,0,0);
 	
-	var textureTask10 = assetsManager.addTextureTask("cloud2DiffuseTexture", "serving/textures/cloud2.png");
+	var textureTask10 = assetsManager.addTextureTask("cloud2DiffuseTexture", "serving/Game/textures/cloud2.png");
 	textureTask10.onSuccess = function(task) {
 		cloud2Mat.diffuseTexture = task.texture;
 		cloud2Mat.diffuseTexture.hasAlpha = true;
@@ -153,7 +153,7 @@ function initializeBabylon(){
 	cloud3Mat.emissiveColor = new BABYLON.Color3(0.9,0.9,0.9);
 	cloud3Mat.specularColor = new BABYLON.Color3(0,0,0);
 	
-	var textureTask11 = assetsManager.addTextureTask("cloud3DiffuseTexture", "serving/textures/cloud3.png");
+	var textureTask11 = assetsManager.addTextureTask("cloud3DiffuseTexture", "serving/Game/textures/cloud3.png");
 	textureTask11.onSuccess = function(task) {
 		cloud3Mat.diffuseTexture = task.texture;
 		cloud3Mat.diffuseTexture.hasAlpha = true;
@@ -166,7 +166,7 @@ function initializeBabylon(){
 	cloud4Mat.emissiveColor = new BABYLON.Color3(0.9,0.9,0.9);
 	cloud4Mat.specularColor = new BABYLON.Color3(0,0,0);
 	
-	var textureTask12 = assetsManager.addTextureTask("cloud4DiffuseTexture", "serving/textures/cloud4.png");
+	var textureTask12 = assetsManager.addTextureTask("cloud4DiffuseTexture", "serving/Game/textures/cloud4.png");
 	textureTask12.onSuccess = function(task) {
 		cloud4Mat.diffuseTexture = task.texture;
 		cloud4Mat.diffuseTexture.hasAlpha = true;
@@ -179,7 +179,7 @@ function initializeBabylon(){
 	cloud5Mat.emissiveColor = new BABYLON.Color3(0.9,0.9,0.9);
 	cloud5Mat.specularColor = new BABYLON.Color3(0,0,0);
 	
-	var textureTask13 = assetsManager.addTextureTask("cloud5DiffuseTexture", "serving/textures/cloud5.png");
+	var textureTask13 = assetsManager.addTextureTask("cloud5DiffuseTexture", "serving/Game/textures/cloud5.png");
 	textureTask13.onSuccess = function(task) {
 		cloud5Mat.diffuseTexture = task.texture;
 		cloud5Mat.diffuseTexture.hasAlpha = true;
@@ -197,7 +197,7 @@ function initializeBabylon(){
 	skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
 	skyboxMaterial.disableLighting = true;
 	
-	var skyboxTask1 = assetsManager.addCubeTextureTask("skyboxCubeTexture", "serving/skybox/skybox");
+	var skyboxTask1 = assetsManager.addCubeTextureTask("skyboxCubeTexture", "serving/Game/skybox/skybox");
 	skyboxTask1.onSuccess = function(task) {
 		skyboxMaterial.reflectionTexture = task.texture;
 		skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
@@ -208,49 +208,49 @@ function initializeBabylon(){
 	// 3. Audio
 	
 	
-	var audioTask1 = assetsManager.addBinaryFileTask("blockAudioTask", "serving/sounds/effects/block.wav");
+	var audioTask1 = assetsManager.addBinaryFileTask("blockAudioTask", "serving/Game/sounds/effects/block.wav");
 	audioTask1.onSuccess = function (task) {
 		block = new BABYLON.Sound("block", task.data, scene, null, {volume: 4});
 	}
 	
-	var audioTask2 = assetsManager.addBinaryFileTask("gotHitAudioTask", "serving/sounds/effects/gotHit.wav");
+	var audioTask2 = assetsManager.addBinaryFileTask("gotHitAudioTask", "serving/Game/sounds/effects/gotHit.wav");
 	audioTask2.onSuccess = function (task) {
 		gotHit = new BABYLON.Sound("gotHit", task.data, scene, null, {volume: 4});
 	}
 	
-	var audioTask3 = assetsManager.addBinaryFileTask("lavaDeathAudioTask", "serving/sounds/effects/lavaDeath.wav");
+	var audioTask3 = assetsManager.addBinaryFileTask("lavaDeathAudioTask", "serving/Game/sounds/effects/lavaDeath.wav");
 	audioTask3.onSuccess = function (task) {
 		lavaDeath = new BABYLON.Sound("lavaDeath", task.data, scene, null, {volume: 6});
 	}
 	
-	var audioTask4 = assetsManager.addBinaryFileTask("swingAudioTask", "serving/sounds/effects/swing.wav");
+	var audioTask4 = assetsManager.addBinaryFileTask("swingAudioTask", "serving/Game/sounds/effects/swing.wav");
 	audioTask4.onSuccess = function (task) {
 		swing = new BABYLON.Sound("swing", task.data, scene, null, {volume: 4});
 	}
 	
-	var audioTask5 = assetsManager.addBinaryFileTask("respawnAudioTask", "serving/sounds/effects/respawn.wav");
+	var audioTask5 = assetsManager.addBinaryFileTask("respawnAudioTask", "serving/Game/sounds/effects/respawn.wav");
 	audioTask5.onSuccess = function (task) {
 		respawn = new BABYLON.Sound("respawn", task.data, scene, null, {volume: 1});
 	}
 	
-	var audioTask6 = assetsManager.addBinaryFileTask("deathAudioTask", "serving/sounds/effects/death.wav");
+	var audioTask6 = assetsManager.addBinaryFileTask("deathAudioTask", "serving/Game/sounds/effects/death.wav");
 	audioTask6.onSuccess = function (task) {
 		death = new BABYLON.Sound("death", task.data, scene, null, {volume: 1});
 	}
 	
-	/*var audioTask7 = assetsManager.addBinaryFileTask("song1AudioTask", "serving/sounds/tracks/LightEmUp.mp3");
+	/*var audioTask7 = assetsManager.addBinaryFileTask("song1AudioTask", "serving/Game/sounds/tracks/LightEmUp.mp3");
 	audioTask7.onSuccess = function (task) {
 		song1 = new BABYLON.Sound("song1", task.data, scene, null, {volume: 0.5, autoplay:true});
 		song1.onended = function(){ song2.play();};
 	}
 	
-	var audioTask8 = assetsManager.addBinaryFileTask("song2AudioTask", "serving/sounds/tracks/Mindwarp.mp3");
+	var audioTask8 = assetsManager.addBinaryFileTask("song2AudioTask", "serving/Game/sounds/tracks/Mindwarp.mp3");
 	audioTask8.onSuccess = function (task) {
 		song2 = new BABYLON.Sound("song2", task.data, scene, null, {volume: 0.5});
 		song2.onended = function(){ song3.play();};
 	}
 	
-	var audioTask9 = assetsManager.addBinaryFileTask("song3AudioTask", "serving/sounds/tracks/Mirrorball.mp3");
+	var audioTask9 = assetsManager.addBinaryFileTask("song3AudioTask", "serving/Game/sounds/tracks/Mirrorball.mp3");
 	audioTask9.onSuccess = function (task) {
 		song3 = new BABYLON.Sound("song3", task.data, scene, null, {volume: 0.5});
 		song3.onended = function(){ song1.play();};
@@ -504,13 +504,13 @@ function createWorld(){
 	skybox.material = skyboxMaterial;
 	
 	///////  Ground  ///////
-	var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "serving/heightmaps/island.jpg", 200, 200, 100, 0, 35.5, scene);
+	var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "serving/Game/heightmaps/island.jpg", 200, 200, 100, 0, 35.5, scene);
 	ground.checkCollisions = true;
 	ground.material = groundMat;
 	ground.position.y += -25;
 	
 	///////  Mountains  ///////
-	var mountains = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "serving/heightmaps/mountains.jpg", 1400, 1400, 48, 0, 300, scene);
+	var mountains = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "serving/Game/heightmaps/mountains.jpg", 1400, 1400, 48, 0, 300, scene);
 	mountains.material = mountainMat;
 	mountains.position.y += -21.5;
 	
@@ -549,7 +549,7 @@ function createWorld(){
 	
 		/*//SUN
 		var sunSize = 300;
-		var spriteManagerSun = new BABYLON.SpriteManager("spriteManagerSun", "serving/textures/sun.png", 2, 675, scene);
+		var spriteManagerSun = new BABYLON.SpriteManager("spriteManagerSun", "serving/Game/Game/textures/sun.png", 2, 675, scene);
 		
 		var sun11 = new BABYLON.Sprite("sun11", spriteManagerSun);
 		sun11.position = new BABYLON.Vector3(-50, 625, -870);

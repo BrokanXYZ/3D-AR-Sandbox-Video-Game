@@ -42,7 +42,7 @@ function respawnParticles(mesh){
 
 		// Particles
 		var particleSystem = new BABYLON.ParticleSystem("particles", 250, scene, effect);
-		particleSystem.particleTexture = new BABYLON.Texture("serving/textures/flare.png", scene);
+		particleSystem.particleTexture = new BABYLON.Texture("/serving/Game/textures/flare.png", scene);
 		particleSystem.minSize = 0.1;
 		particleSystem.maxSize = 1.0;
 		particleSystem.minLifeTime = 0.5;

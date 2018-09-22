@@ -9,9 +9,10 @@ var port = 6969;
 var verbose = false;
 
 //User specific vars
-var UUID = require('uuid/v1');
 var IP = 'N/A';
 
+
+//////////// File Fetching ////////////
 
 app.get('/', function(req, res){
 	IP = req.header('x-forwarded-for') || req.connection.remoteAddress;
@@ -32,12 +33,19 @@ app.get( '/*' , function(req, res, next) {
 });
 
 
+//////////// Terrain Viewer - Heightmap watch ////////////
+var watch = require('node-watch');
+var lastUpdate = Date.now();
+
+watch('serving/TerrainViewer3D/heightmaps', function(evt, name) {
+  console.log('Terrain update	' + (Date.now()-lastUpdate)+' ms');
+  lastUpdate = Date.now();
+  io.emit('updateTerrain');
+});
+
 
 
 //////////// SOCKET.IO Definitions ////////////
-
-
-
 
 //**List of players who are currently PLAYING the game**
 //
@@ -53,7 +61,6 @@ clients = [];
 io.on('connection', function(socket){
 
 	//Initialize user vars
-	//socket.userID = UUID();
 	socket.userID = socket.id;
 	socket.userIP = IP;
 	socket.nickname = "BananaMan";
