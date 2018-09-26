@@ -37,7 +37,7 @@ function createWorld(){
 		scene.clearColor = new BABYLON.Color3(0, 0, 0);
 		
 		// Create terrain object
-		terrain = BABYLON.Mesh.CreateGroundFromHeightMap("terrain", "/serving/TerrainViewer3D/heightmaps/out.png", 1000, 750, numSubdiv, 0, 150, scene, true, null);
+		terrain = BABYLON.Mesh.CreateGroundFromHeightMap("terrain", "/serving/TerrainViewer3D/grassOutput/out.png", 1000*terrainSize, 750*terrainSize, numSubdiv, 0, 150*terrainSize, scene, true, null);
 
 		terrain.position = new BABYLON.Vector3(0,0,0);
 

@@ -1,17 +1,19 @@
 
 function setupSocketIO(){
 
-	socket.on('updateTerrain', function() {
+	socket.on('update3DTerrain', function() {
 		
 		if(typeof nextTerrain != 'undefined'){
 			nextTerrain.dispose();
 		}
 		
-		var nextTerrain = BABYLON.Mesh.CreateGroundFromHeightMap("terrain", "/serving/TerrainViewer3D/heightmaps/out.png", 1000, 750, numSubdiv, 0, 150, scene, false, 
+		var nextTerrain = BABYLON.Mesh.CreateGroundFromHeightMap("terrain", "/serving/TerrainViewer3D/grassOutput/out.png", 1000*terrainSize, 750*terrainSize, numSubdiv, 0, 150*terrainSize, scene, false, 
 		function(){
 			nextTerrain.visibility = false;
 			updateTerrain(nextTerrain.getVerticesData(BABYLON.VertexBuffer.PositionKind));
 		});
+		
+		console.log('*Terrain update');
 		
 		
 	});
@@ -28,7 +30,7 @@ function updateTerrain(endPositions){
 	yDiff = []; 
 	yMax = 0;
 
-	console.log('num vertices: ' + numVerts);
+	//console.log('num vertices: ' + numVerts);
 
 	for(x=0; x<numVerts; x++){
 
@@ -41,7 +43,7 @@ function updateTerrain(endPositions){
 
 	}
 
-	console.log('yMax: ' + yMax);
+	//console.log('yMax: ' + yMax);
 
 
 	// Start update loop

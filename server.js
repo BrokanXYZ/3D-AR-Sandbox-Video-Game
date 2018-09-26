@@ -35,12 +35,34 @@ app.get( '/*' , function(req, res, next) {
 
 //////////// Terrain Viewer - Heightmap watch ////////////
 var watch = require('node-watch');
+var fs = require('fs')
+  , gm = require('gm').subClass({imageMagick: true});
 var lastUpdate = Date.now();
 
-watch('serving/TerrainViewer3D/heightmaps', function(evt, name) {
-  console.log('Terrain update	' + (Date.now()-lastUpdate)+' ms');
-  lastUpdate = Date.now();
-  io.emit('updateTerrain');
+watch('serving/TerrainViewer3D/grassOutput/out.png', function(evt, name) {
+	console.log('Terrain update	' + (Date.now()-lastUpdate)+' ms');
+	lastUpdate = Date.now();
+	io.emit('update3DTerrain');
+});
+
+watch('serving/TerrainViewer2D/grassOutput', function(evt, name) {
+		
+	if(name.substring(36,44)==="contours"){
+		var count = 44;
+		while(name[count]!='.'){
+			count++;
+		}
+		
+		var fileNum = name.substring(44,count);
+		
+		gm(name)
+		.crop(640, 360, 0, 60)
+		.transparent('white')
+		.write('serving/TerrainViewer2D/grassOutput/cropped-Contours' + fileNum + '.png', function (err) {
+			if (!err) io.emit('update2DTerrain', fileNum);
+		})
+	}
+
 });
 
 
