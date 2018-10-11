@@ -5,7 +5,7 @@
     "dependencies": {
         "socket.io": "latest",
         "express": "latest",
-		"node-watch": "latest",
+        "node-watch": "latest",
         "gm": "latest"
     },
     "author": "Brok Stafford"
