@@ -1,6 +1,76 @@
 
 function setupSocketIO(){
 
+	socket.emit('onconnected', function(data) {
+
+		mySocketId = data[0];
+		activeClients = data[1];
+		
+		console.log("You successfully connected! \nYour ID is " + mySocketId);
+		
+		//		***SETUP PLAYER START***
+		setupPlayer();
+		
+		
+		
+		for(x=0; x<activeClients.length; x++){
+			//Client vars
+			var uID = activeClients[x][0];
+			//var uPosition = activeClients[x][2];
+			var uColor = activeClients[x][3];
+			
+			//Create player mesh
+			createAnotherPlayer(uID, uColor);
+		}
+		
+		
+		
+	});
+	
+	socket.on('playerConnected', function(data) {
+		
+		//get new player's data
+		var uID = data[0];
+		//var uPosition = data[2];
+		var uColor = data[3];
+		
+		console.log('++ User ' + uID + ' has joined!');
+			
+		//Create player mesh
+		createAnotherPlayer(uID, uColor);
+		
+		//Update active clients
+		updateActiveClients();
+		
+	});
+	
+	socket.on('playerDisconnect', function(data) {
+		
+		var playerID = data;
+		
+		console.log("-- player " + playerID + " has left the game");
+		
+		players.get(playerID).characterMesh.dispose();
+		players.delete(playerID);
+		
+		
+		//Update active clients
+		updateActiveClients();
+	});
+	
+	socket.on('move', function(args) {
+		var userID = args.userID;
+		
+		if(players.get(userID) != undefined) {
+			
+			players.get(userID).characterMesh.position.x = args.posX;
+			players.get(userID).characterMesh.position.y = args.posY;
+			players.get(userID).characterMesh.position.z = args.posZ;
+			
+			players.get(userID).characterMesh.rotation.y = args.rotY
+		}
+	});
+
 	socket.on('update3DTerrain', function() {
 		if(typeof nextTerrain != 'undefined'){
 			nextTerrain.dispose();
@@ -17,6 +87,19 @@ function setupSocketIO(){
 	
 }
 
+
+function createAnotherPlayer(uID, uColor){
+	
+	players.set(uID, []);
+	
+	players.get(uID).characterMesh = BABYLON.Mesh.CreateSphere("sphere1", 16, 2, scene);
+	var playerMat = new BABYLON.StandardMaterial("mat_" + uID, scene);
+	playerMat.emissiveColor = new BABYLON.Color3(0,0,0);
+	playerMat.diffuseColor = new BABYLON.Color3(uColor[0],uColor[1],uColor[2]);
+	playerMat.specularColor = new BABYLON.Color3(0,0,0);
+	players.get(uID).characterMesh.material = playerMat;
+	
+}
 
 function updateTerrain(endPositions){
 

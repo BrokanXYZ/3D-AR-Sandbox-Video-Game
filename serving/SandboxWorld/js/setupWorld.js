@@ -34,8 +34,8 @@ function initializeBabylon(){
 	var textureTask8 = assetsManager.addTextureTask("groundDiffuseTexture", "/serving/Game/textures/sand.png");
 	textureTask8.onSuccess = function(task) {
 		groundMat.diffuseTexture = task.texture;
-		groundMat.diffuseTexture.uScale = 15.0;
-		groundMat.diffuseTexture.vScale = 15.0;
+		groundMat.diffuseTexture.uScale = 20.0;
+		groundMat.diffuseTexture.vScale = 20.0;
 	}
 	
 	
@@ -171,8 +171,6 @@ function initializeBabylon(){
 }
 
 
-
-
 function createWorld(){
 
 		// Change scene background
@@ -190,7 +188,9 @@ function createWorld(){
 		terrain = BABYLON.Mesh.CreateGroundFromHeightMap("terrain", "/serving/TerrainViewer3D/grassOutput/out.png", 1000*terrainSize, 750*terrainSize, numSubdiv, 0, 150*terrainSize, scene, true, null);
 		terrain.position = new BABYLON.Vector3(0,0,0);
 		terrain.material = groundMat;
-
+		
+		unevenMeshes.push(terrain);
+		
 		// Stops terrain from conintuing to update once its end position is reached
 		engine.runRenderLoop(function () {
 			if(animationSteps<stepCount){
