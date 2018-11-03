@@ -1,4 +1,5 @@
 var spectate = false;
+var spectateSpeed = 40;
 
 
 // Socket stuff

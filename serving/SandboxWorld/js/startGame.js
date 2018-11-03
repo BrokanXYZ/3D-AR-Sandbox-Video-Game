@@ -13,7 +13,7 @@ function setupPlayer(){
 	function spectateCamera(){
 		camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(0, 0, -10), scene);
 		camera.attachControl(canvas, true);
-		camera.speed = 40;
+		camera.speed = spectateSpeed;
 		camera.position.y = 250;
 		
 		//Aiming
@@ -62,7 +62,7 @@ function setupPlayer(){
 		players.get(mySocketId).trackingBox.visibility = false;
 		
 		//Configure player's tracking box
-		players.get(mySocketId).trackingBox.position = new BABYLON.Vector3(0,125,0);
+		players.get(mySocketId).trackingBox.position = new BABYLON.Vector3(0,100,0);
 		players.get(mySocketId).trackingBox.isPickable = false;
 		
 		//Package player data
@@ -71,7 +71,7 @@ function setupPlayer(){
 		playerData.nickname = "NICKNAME";
 		
 		// Get random color for player
-		playerData.color = players.get(mySocketId).color = new Array(randomNumber(0,2), randomNumber(0,2), randomNumber(0,2));
+		playerData.color = players.get(mySocketId).color = new Array(randomNumber(0,1), randomNumber(0,1), randomNumber(0,1));
 		
 		
 		//Let the server know the player has been created
@@ -85,8 +85,8 @@ function setupPlayer(){
 		
 		players.get(mySocketId).characterMesh = BABYLON.Mesh.CreateSphere("sphere1", 16, 2, scene);
 		var playerMat = new BABYLON.StandardMaterial("mat_" + mySocketId, scene);
-		playerMat.emissiveColor = new BABYLON.Color3(0,0,0);
-		playerMat.diffuseColor = new BABYLON.Color3(players.get(mySocketId).color[0],players.get(mySocketId).color[1],players.get(mySocketId).color[2]);
+		playerMat.emissiveColor = new BABYLON.Color3(players.get(mySocketId).color[0],players.get(mySocketId).color[1],players.get(mySocketId).color[2]);
+		playerMat.diffuseColor = new BABYLON.Color3(0,0,0);
 		playerMat.specularColor = new BABYLON.Color3(0,0,0);
 		players.get(mySocketId).characterMesh.material = playerMat;
 		players.get(mySocketId).characterMesh.checkCollisions = false;
@@ -181,29 +181,12 @@ function setupPlayer(){
 		}));
 		
 		
-		// Raycast from player's tracking box
-		// 1. can player jump?
-		// 2. is the player on an uneven surface?
-		function checkPlayersSurface() {
-			// Origin, Direction, Length
-			var surfaceCheckRay = new BABYLON.Ray(players.get(mySocketId).trackingBox.position, new BABYLON.Vector3(0, -1, 0), 2.2);
-			
-			onUnevenSurface = scene.pickWithRay(surfaceCheckRay, function (mesh) {
-				for(var x=0; x<unevenMeshes.length; x++){
-					if(mesh==unevenMeshes[x]){
-						return true;
-					}
-				}
-				return false;
-			});			
-		}
-		
 
 		// If player is on an uneven surface... determine the player's next Y position so that they move smoothly down those surfaces
 		function nextPosOnUnevenMesh() {
 			// Origin, Direction, Length
-			var surfaceCheckRay = scene.pickWithRay(new BABYLON.Ray(players.get(mySocketId).trackingBox.position, new BABYLON.Vector3(0, -1, 0), 2.35));
-			var originToGroundRatio = 2.11;
+			var surfaceCheckRay = scene.pickWithRay(new BABYLON.Ray(players.get(mySocketId).trackingBox.position, new BABYLON.Vector3(0, -1, 0), 50));
+			var originToGroundRatio = 5;
 			
 			if(surfaceCheckRay.hit){
 				// If player is still on mesh... send new position
@@ -256,19 +239,13 @@ function setupPlayer(){
 				zMovement *= 0.5;
 			}
 			
-			// Cast ray to check player's surface
-			checkPlayersSurface();
 			
 			// Make the move!
-			if(onUnevenSurface.hit){
-				// Without gravity
-				players.get(mySocketId).trackingBox.moveWithCollisions(new BABYLON.Vector3(xMovement*animRatio, 0, zMovement*animRatio));
-				// Adjust y position so that player smoothly traverses
-				players.get(mySocketId).trackingBox.position.y = nextPosOnUnevenMesh();
-			}else{
-				// With gravity
-				players.get(mySocketId).trackingBox.moveWithCollisions(new BABYLON.Vector3(xMovement*animRatio, gravity, zMovement*animRatio));
-			}
+			
+			// Without gravity
+			players.get(mySocketId).trackingBox.moveWithCollisions(new BABYLON.Vector3(xMovement*animRatio, 0, zMovement*animRatio));
+			// Adjust y position so that player smoothly traverses
+			players.get(mySocketId).trackingBox.position.y = nextPosOnUnevenMesh();
 			
 			// Camera will follow player's tracking box
 			camera.position.x = players.get(mySocketId).trackingBox.position.x;

@@ -94,8 +94,8 @@ function createAnotherPlayer(uID, uColor){
 	
 	players.get(uID).characterMesh = BABYLON.Mesh.CreateSphere("sphere1", 16, 2, scene);
 	var playerMat = new BABYLON.StandardMaterial("mat_" + uID, scene);
-	playerMat.emissiveColor = new BABYLON.Color3(0,0,0);
-	playerMat.diffuseColor = new BABYLON.Color3(uColor[0],uColor[1],uColor[2]);
+	playerMat.diffuseColor = new BABYLON.Color3(0,0,0);
+	playerMat.emissiveColor = new BABYLON.Color3(uColor[0],uColor[1],uColor[2]);
 	playerMat.specularColor = new BABYLON.Color3(0,0,0);
 	players.get(uID).characterMesh.material = playerMat;
 	

@@ -42,6 +42,12 @@ function setupGUI(){
 		contours = new BABYLON.GUI.Image("contours", "/serving/TerrainViewer2D/grassOutput/blankContours.png");
 		advancedTexture.addControl(contours); 
 	
+	
+		setInterval(function(){ 
+			updatePlayerPositions(); 
+			drawPlayers(); 
+		}, 1000);
+
 }
 
 

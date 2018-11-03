@@ -176,7 +176,7 @@ function createWorld(){
 		// Change scene background
 		scene.clearColor = new BABYLON.Color3(1,0.3,0.1);
 	
-		//Light
+		// Light
 		var light0 = new BABYLON.DirectionalLight("light0", new BABYLON.Vector3(0, -1.5, 1), scene);
 		light0.position = new BABYLON.Vector3(0, 50, -50);
 		light0.diffuse = new BABYLON.Color3(1, 1, 1);
@@ -184,11 +184,21 @@ function createWorld(){
 		light0.groundColor = new BABYLON.Color3(0, 0, 0);
 		light0.intensity = 0.9;
 		
+		// Skybox
+		var skybox = BABYLON.Mesh.CreateBox("skyBox", 3000.0, scene);
+		skybox.position.y += 200;
+		skybox.material = skyboxMaterial;
+	
+		// Mountains
+		var mountains = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "/serving/Game/heightmaps/mountains.jpg", 1875, 1450, 80, 0, 500, scene);
+		mountains.material = mountainMat;
+		mountains.position.x += 35;
+		mountains.position.z += 25;
+	
 		// Create terrain object
 		terrain = BABYLON.Mesh.CreateGroundFromHeightMap("terrain", "/serving/TerrainViewer3D/grassOutput/out.png", 1000*terrainSize, 750*terrainSize, numSubdiv, 0, 150*terrainSize, scene, true, null);
 		terrain.position = new BABYLON.Vector3(0,0,0);
 		terrain.material = groundMat;
-		
 		unevenMeshes.push(terrain);
 		
 		// Stops terrain from conintuing to update once its end position is reached

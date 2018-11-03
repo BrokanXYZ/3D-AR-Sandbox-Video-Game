@@ -111,6 +111,19 @@ io.on('connection', function(socket){
 		onSuccess(data);
     });
 	
+	//send list of player positions and color to 2D Map
+    socket.on('update2dMapPositions', function(onSuccess) {
+		
+		var data = [];
+		
+		for(var x=0; x<clients.length; x++){
+			data.push([clients[x][0],clients[x][2],clients[x][3]]);
+		}
+		
+		//Send data to client
+		onSuccess(data);
+    });
+	
 	
 	//Player has successfully entered a nickname and is now a player!
 	socket.on('playerInit', function(playerData){
@@ -134,6 +147,14 @@ io.on('connection', function(socket){
 	// args contains vector3 position
 	socket.on('updatePos', function(args) {
 		args.userID = socket.userID;
+		
+		for(var x=0; x<clients.length; x++){
+			if(clients[x][0] == socket.userID){
+				clients[x][2] = [args.posX,args.posY,args.posZ];
+				break;
+			}
+		}
+		
 		socket.broadcast.emit('move', args);
     });
 	
