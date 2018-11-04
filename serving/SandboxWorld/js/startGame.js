@@ -83,36 +83,55 @@ function setupPlayer(){
 	
 	function playerCharacterSetup(){
 		
-		players.get(mySocketId).characterMesh = BABYLON.Mesh.CreateSphere("sphere1", 16, 2, scene);
-		var playerMat = new BABYLON.StandardMaterial("mat_" + mySocketId, scene);
-		playerMat.emissiveColor = new BABYLON.Color3(players.get(mySocketId).color[0],players.get(mySocketId).color[1],players.get(mySocketId).color[2]);
-		playerMat.diffuseColor = new BABYLON.Color3(0,0,0);
-		playerMat.specularColor = new BABYLON.Color3(0,0,0);
-		players.get(mySocketId).characterMesh.material = playerMat;
-		players.get(mySocketId).characterMesh.checkCollisions = false;
-		players.get(mySocketId).characterMesh.isPickable = false;
-		players.get(mySocketId).characterMesh.visibility = 0;
 		
-		// Character mesh will follow tracking box
-		engine.runRenderLoop(function () {
-			players.get(mySocketId).characterMesh.position.x = players.get(mySocketId).trackingBox.position.x;
-			players.get(mySocketId).characterMesh.position.y = players.get(mySocketId).trackingBox.position.y - 2;
-			players.get(mySocketId).characterMesh.position.z = players.get(mySocketId).trackingBox.position.z;
-			players.get(mySocketId).characterMesh.rotation.y = players.get(mySocketId).trackingBox.rotation.y + Math.PI;
+		BABYLON.SceneLoader.ImportMesh("", "/serving/Game/meshes/", "player.babylon", scene, function (newMeshes, particleSystems, skeletons) {
+		
+			//Imported mesh results
+			playerMesh = newMeshes[0];
+			playerSkeleton = skeletons[0];
+			swordMesh = newMeshes[1];
+
+			//Save player variables to global array
+			players.get(mySocketId).characterMesh = playerMesh;
+			players.get(mySocketId).skeleton = playerSkeleton;
+			players.get(mySocketId).weapon = swordMesh;
+			players.get(mySocketId).curBodyAnimation = 0;
+			players.get(mySocketId).curArmAnimation = 0;
+			players.get(mySocketId).armProxy = [];
+			players.get(mySocketId).armProxy.armPrepped = true;
+			players.get(mySocketId).armProxy.armLock = false;
+			players.get(mySocketId).characterMesh.checkCollisions = false;
+			players.get(mySocketId).characterMesh.isPickable = false;
+			players.get(mySocketId).characterMesh.visibility = 0;
+			players.get(mySocketId).weapon.checkCollisions = false;
+			players.get(mySocketId).weapon.isPickable = false;
+			players.get(mySocketId).weapon.visibility = 0;
+			
+			
+			// Character mesh will follow tracking box
+			engine.runRenderLoop(function () {
+				players.get(mySocketId).characterMesh.position.x = players.get(mySocketId).trackingBox.position.x;
+				players.get(mySocketId).characterMesh.position.y = players.get(mySocketId).trackingBox.position.y - 2;
+				players.get(mySocketId).characterMesh.position.z = players.get(mySocketId).trackingBox.position.z;
+				players.get(mySocketId).characterMesh.rotation.y = players.get(mySocketId).trackingBox.rotation.y + Math.PI;
+			});
+
+			//Set interval for sending player 1's position to others
+			setInterval(function() {
+				var data = {};
+
+				data.posX = players.get(mySocketId).characterMesh.position.x;
+				data.posY = players.get(mySocketId).characterMesh.position.y;
+				data.posZ = players.get(mySocketId).characterMesh.position.z;
+
+				data.rotY = players.get(mySocketId).characterMesh.rotation.y;
+
+				socket.emit('updatePos', data);
+			}, 20);
+
+			
 		});
 			
-		//Set interval for sending player 1's position to others
-		setInterval(function() {
-			var data = {};
-
-			data.posX = players.get(mySocketId).characterMesh.position.x;
-			data.posY = players.get(mySocketId).characterMesh.position.y;
-			data.posZ = players.get(mySocketId).characterMesh.position.z;
-			
-			data.rotY = players.get(mySocketId).characterMesh.rotation.y;
-
-			socket.emit('updatePos', data);
-		}, 20);
 		
 	}
 	
@@ -136,12 +155,14 @@ function setupPlayer(){
 				case 87:
 						if(!moveForward){
 							moveForward = true;
+							updatePlayer1Animation(1, "wholeBodyAnimation");
 						}
 						break;
 				// S
 				case 83:
 						if(!moveBack){
 							moveBack = true;
+							updatePlayer1Animation(2, "wholeBodyAnimation");
 						}
 						break;
 				// A
@@ -163,10 +184,12 @@ function setupPlayer(){
 				// W
 				case 87:
 						moveForward = false;
+						updatePlayer1Animation(0, "wholeBodyAnimation");
 						break;
 				// S
 				case 83:
 						moveBack = false;
+						updatePlayer1Animation(0, "wholeBodyAnimation");
 						break;
 				// A
 				case 65:
@@ -186,7 +209,7 @@ function setupPlayer(){
 		function nextPosOnUnevenMesh() {
 			// Origin, Direction, Length
 			var surfaceCheckRay = scene.pickWithRay(new BABYLON.Ray(players.get(mySocketId).trackingBox.position, new BABYLON.Vector3(0, -1, 0), 295));
-			var originToGroundRatio = 5;
+			var originToGroundRatio = 2;
 			
 			if(surfaceCheckRay.hit){
 				// If player is still on mesh... send new position
