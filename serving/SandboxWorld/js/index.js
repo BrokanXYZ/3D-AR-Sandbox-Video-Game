@@ -1,5 +1,5 @@
 var spectate = false;
-var spectateSpeed = 40;
+var spectateSpeed = 50;
 
 
 // Socket stuff
@@ -34,8 +34,6 @@ var animationSteps = 200;
 var stepCount = 0;
 var terrainSize = 1.5;
 var numSubdiv = 150;
-
-
 
 //Entry point
 document.addEventListener("DOMContentLoaded", function() {

@@ -94,9 +94,9 @@ function createAnotherPlayer(uID, uColor){
 	
 	players.get(uID).characterMesh = BABYLON.Mesh.CreateSphere("sphere1", 16, 2, scene);
 	var playerMat = new BABYLON.StandardMaterial("mat_" + uID, scene);
-	playerMat.diffuseColor = new BABYLON.Color3(0,0,0);
-	playerMat.emissiveColor = new BABYLON.Color3(uColor[0],uColor[1],uColor[2]);
-	playerMat.specularColor = new BABYLON.Color3(0,0,0);
+	playerMat.diffuseColor = new BABYLON.Color3(uColor[0],uColor[1],uColor[2]);
+	playerMat.emissiveColor = new BABYLON.Color3(uColor[0]/2,uColor[1]/2,uColor[2]/2);
+	playerMat.specularColor = new BABYLON.Color3(1,1,1);
 	players.get(uID).characterMesh.material = playerMat;
 	
 }
@@ -123,9 +123,6 @@ function updateTerrain(endPositions){
 
 	}
 
-	//console.log('yMax: ' + yMax);
-
-
 	// Start update loop
 	engine.runRenderLoop(changePositions);
 
@@ -138,8 +135,16 @@ function changePositions(){
 		for(x=0; x<numVerts; x++){
 			currentPositions[x*3+1] += yDiff[x];
 		}
-
+	
+		// Step vertice positions
 		terrain.updateVerticesData(BABYLON.VertexBuffer.PositionKind, currentPositions);
+		
+		// Recalculate Normals
+		var normals = [];
+		BABYLON.VertexData.ComputeNormals(currentPositions, terrain.getIndices(), normals);
+		terrain.setVerticesData(BABYLON.VertexBuffer.NormalKind, normals, true);
+	
+	
 		stepCount++;
 }
 

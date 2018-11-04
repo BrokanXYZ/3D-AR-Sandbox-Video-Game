@@ -180,20 +180,21 @@ function createWorld(){
 		var light0 = new BABYLON.DirectionalLight("light0", new BABYLON.Vector3(0, -1.5, 1), scene);
 		light0.position = new BABYLON.Vector3(0, 50, -50);
 		light0.diffuse = new BABYLON.Color3(1, 1, 1);
-		light0.specular = new BABYLON.Color3(1, 0, 0);
+		light0.specular = new BABYLON.Color3(1, 1, 1);
 		light0.groundColor = new BABYLON.Color3(0, 0, 0);
 		light0.intensity = 0.9;
 		
 		// Skybox
-		var skybox = BABYLON.Mesh.CreateBox("skyBox", 3000.0, scene);
+		skybox = BABYLON.Mesh.CreateBox("skyBox", 3000.0, scene);
 		skybox.position.y += 200;
 		skybox.material = skyboxMaterial;
 	
 		// Mountains
-		var mountains = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "/serving/Game/heightmaps/mountains.jpg", 1875, 1450, 80, 0, 500, scene);
+		var mountains = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "/serving/Game/heightmaps/mountains.jpg", 1875, 1450, 88, 0, 500, scene);
 		mountains.material = mountainMat;
 		mountains.position.x += 35;
 		mountains.position.z += 25;
+		mountains.position.y -= 10;
 	
 		// Create terrain object
 		terrain = BABYLON.Mesh.CreateGroundFromHeightMap("terrain", "/serving/TerrainViewer3D/grassOutput/out.png", 1000*terrainSize, 750*terrainSize, numSubdiv, 0, 150*terrainSize, scene, true, null);
@@ -207,9 +208,38 @@ function createWorld(){
 				engine.stopRenderLoop(changePositions);	
 			}
 		});
+	
+		// SUN
+		var sunSize = 300;
+		var spriteManagerSun = new BABYLON.SpriteManager("spriteManagerSun", "/serving/Game/textures/sun.png", 2, 675, scene);
+		
+		var sun1 = new BABYLON.Sprite("sun1", spriteManagerSun);
+		sun1.position = new BABYLON.Vector3(-50, 625, -1000);
+		sun1.size = 300;
+		var sun2 = new BABYLON.Sprite("sun2", spriteManagerSun);
+		sun2.position = new BABYLON.Vector3(-50, 625, -1005);
+		sun2.size = sunSize;
+		sun2.angle -= 8;
+		
+		// Sky rotations
+		var skyboxZrot = 0.000075;
+		
+		engine.runRenderLoop(function () {
+			sun1.angle -= 0.001;
+			sun2.angle -= 0.001;
+			
+			skybox.rotation.y += 0.000075;
+			skybox.rotation.z += skyboxZrot;
+			
+			if(skybox.rotation.z<-0.7 || skybox.rotation.z>0.7){
+				skyboxZrot = skyboxZrot*-1;
+			}
+		});
 
 	
-	
+		var shadowGenerator00 = new BABYLON.ShadowGenerator(512, light0);
+		shadowGenerator00.useContactHardeningShadow = true;
+		shadowGenerator00.contactHardeningLightSizeUVRatio = 0.0075;
 	
 	
 	

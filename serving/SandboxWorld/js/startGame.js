@@ -62,7 +62,7 @@ function setupPlayer(){
 		players.get(mySocketId).trackingBox.visibility = false;
 		
 		//Configure player's tracking box
-		players.get(mySocketId).trackingBox.position = new BABYLON.Vector3(0,100,0);
+		players.get(mySocketId).trackingBox.position = new BABYLON.Vector3(0,300,0);
 		players.get(mySocketId).trackingBox.isPickable = false;
 		
 		//Package player data
@@ -185,7 +185,7 @@ function setupPlayer(){
 		// If player is on an uneven surface... determine the player's next Y position so that they move smoothly down those surfaces
 		function nextPosOnUnevenMesh() {
 			// Origin, Direction, Length
-			var surfaceCheckRay = scene.pickWithRay(new BABYLON.Ray(players.get(mySocketId).trackingBox.position, new BABYLON.Vector3(0, -1, 0), 50));
+			var surfaceCheckRay = scene.pickWithRay(new BABYLON.Ray(players.get(mySocketId).trackingBox.position, new BABYLON.Vector3(0, -1, 0), 295));
 			var originToGroundRatio = 5;
 			
 			if(surfaceCheckRay.hit){
