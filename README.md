@@ -1,15 +1,12 @@
 # UntitledGame
 
-A work in progress! For more details check out the link below.
+I began working on this project during the summer of 2017. I spent a year on and off learning how to build a web-based 3D video game using [BabylonJS](https://www.babylonjs.com/) and [Blender](https://www.blender.org/). After graduating in the spring of 2018 I spent the next 6 months building an Augmented Reality sandbox and the system that would allow it to interface with the game I had created. The final result of my work is essentially a proof of concept. The game is simplistic and turning it into something fully fledge would require time and a team.
 
-http://www.brokan.xyz/untitledGame.html
+**Final Demo**
+https://www.youtube.com/watch?v=XsTA7HTHhCU&ab_channel=BrokStafford
 
-This game is being developed with **BabylonJS**, **Node.js**, and **Blender**. BabylonJS is the game engine, Node.js the webserver, and Blender is being used for 3D modeling, texture mapping, and animations.
+**First Demo**
+https://www.youtube.com/watch?v=FHelUjj2cQg&ab_channel=BrokStafford
 
-## Update 8/30/18 - AR Sandbox
-I finished building an augmented reality sandbox that I plan on integrating into this game. Think of the Hunger Games scenes where the government officials are controlling the playfield using a holographic map. “Sandbox operators” will be able to modify the terrain of the battlefield, track player locations, place 3D printed markers to spawn hostile enemies, etc.
-
-## v1.0a Release 7/4/18
-This game is now in its alpha stage. It's playable, enjoyable, filled with bugs, and missing non-essential items.
-
-
+**Linked-In Article**
+https://www.linkedin.com/pulse/ar-sandbox-game-untitled-brok-stafford/
